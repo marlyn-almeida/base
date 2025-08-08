@@ -1,0 +1,317 @@
+// Creado por Marlyn Almeida – 06/08/2025
+import React, { useState, useEffect } from "react";
+import {
+  Responsable,
+  crearResponsable,
+  editarResponsable,
+} from "./apiResponsables";
+
+interface Props {
+  responsable: Responsable | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  isEditing: boolean;
+}
+
+const FormularioResponsable: React.FC<Props> = ({
+  responsable,
+  isOpen,
+  onClose,
+  onSuccess,
+  isEditing,
+}) => {
+  const [formData, setFormData] = useState<Responsable | null>(null);
+  const [error, setError] = useState<string>("");
+  const [mensaje, setMensaje] = useState<string>("");
+
+  useEffect(() => {
+    const defaultData: Responsable = {
+      id: responsable?.id ?? `resp-${Date.now()}`,
+      nombre: "",
+      apellido: "",
+      apellidomaterno: "",
+      cedula: "",
+      email: "",
+      telefono: "",
+      area: "",
+      tipo: "DBA",
+      estado: "Activo",
+      fechaIngreso: new Date().toISOString().split("T")[0],
+      fechaCreacion: "",
+      usuario: "admin",
+      servidoresAsignados: 0,
+      aplicacionesAsignadas: 0,
+      sexo: "Masculino",
+      tipoSangre: "A+",
+      nivel: "",
+      descripcion: "",
+      observaciones: "",
+      rolcodigo: "",
+      percodigo: "",
+      empprofile: "",
+      perfil: "",
+    };
+
+    setFormData(responsable ? { ...defaultData, ...responsable } : defaultData);
+    setError("");
+    setMensaje("");
+  }, [responsable]);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    if (!formData) return;
+
+    let castedValue: any = value;
+
+    if (name === "tipo" && ["DBA", "INF", "WS", "APL"].includes(value)) {
+      castedValue = value as Responsable["tipo"];
+    } else if (name === "estado" && ["Activo", "Inactivo"].includes(value)) {
+      castedValue = value as Responsable["estado"];
+    } else if (name === "sexo" && ["Masculino", "Femenino", "Otro"].includes(value)) {
+      castedValue = value as Responsable["sexo"];
+    } else if (
+      name === "tipoSangre" &&
+      ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].includes(value)
+    ) {
+      castedValue = value as Responsable["tipoSangre"];
+    } else if (
+      name === "servidoresAsignados" ||
+      name === "aplicacionesAsignadas"
+    ) {
+      castedValue = parseInt(value) || 0;
+    }
+
+    setFormData((prev) => prev ? { ...prev, [name]: castedValue } : null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData) return;
+
+    const requiredFields = [
+      "nombre", "apellido", "apellidomaterno", "cedula", "email",
+      "tipo", "sexo", "estado", "fechaIngreso", "rolcodigo", "percodigo", "empprofile"
+    ];
+    const missing = requiredFields.filter((field) => !formData[field as keyof Responsable]);
+    if (missing.length > 0) {
+      setError("Por favor, complete todos los campos obligatorios.");
+      return;
+    }
+
+    const enrichedData: Responsable = {
+      ...formData,
+      fechaCreacion: new Date().toISOString().split("T")[0],
+      usuario: "admin",
+    };
+
+    const exito = isEditing
+      ? await editarResponsable(enrichedData)
+      : await crearResponsable(enrichedData);
+
+    if (exito) {
+      setMensaje("Responsable guardado correctamente.");
+      onSuccess();
+      onClose();
+    } else {
+      setError("Error al guardar responsable.");
+    }
+  };
+
+  if (!isOpen || !formData) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">
+              {isEditing ? "Editar Responsable" : "Nuevo Responsable"}
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+
+          {error && <div className="mb-4 text-red-600 font-medium">{error}</div>}
+          {mensaje && <div className="mb-4 text-green-600 font-medium">{mensaje}</div>}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Información Personal */}
+            <Section title="Información Personal">
+              {Input("Nombre *", "nombre", formData.nombre, handleChange, true)}
+              {Input("Apellido Paterno *", "apellido", formData.apellido, handleChange, true)}
+              {Input("Apellido Materno *", "apellidomaterno", formData.apellidomaterno, handleChange, true)}
+              {Input("Cédula *", "cedula", formData.cedula, handleChange, true)}
+              {Input("Email *", "email", formData.email, handleChange, true, "email")}
+              {Input("Teléfono", "telefono", formData.telefono, handleChange)}
+              {Select("Sexo *", "sexo", formData.sexo, handleChange, [
+                "Seleccione...",
+                "Masculino",
+                "Femenino",
+                "Otro",
+              ])}
+              {Select("Tipo de Sangre", "tipoSangre", formData.tipoSangre ?? "", handleChange, [
+                "Seleccione...",
+                "A+",
+                "A-",
+                "B+",
+                "B-",
+                "AB+",
+                "AB-",
+                "O+",
+                "O-",
+              ])}
+            </Section>
+
+            {/* Información Laboral */}
+            <Section title="Información Laboral">
+              {Select("Tipo de Responsable *", "tipo", formData.tipo, handleChange, [
+                "Seleccione...",
+                "DBA",
+                "INF",
+                "WS",
+                "APL",
+              ])}
+              {Input("Área *", "area", formData.area, handleChange)}
+              {Select("Estado *", "estado", formData.estado, handleChange, [
+                "Seleccione...",
+                "Activo",
+                "Inactivo",
+              ])}
+              {Input("Fecha de Ingreso *", "fechaIngreso", formData.fechaIngreso, handleChange, true, "date")}
+              {Input("Nivel", "nivel", formData.nivel ?? "", handleChange)}
+              {Select("Rol *", "rolcodigo", formData.rolcodigo, handleChange, [
+                "Seleccione...",
+                "ROL001",
+                "ROL002",
+                "ROL003",
+              ])}
+              {Select("Perfil *", "empprofile", formData.empprofile, handleChange, [
+                "Seleccione...",
+                "Administrador",
+                "Auditor",
+                "Operador",
+              ])}
+            </Section>
+
+            {/* Asignaciones */}
+            <Section title="Asignaciones">
+              {Input("Servidores Asignados", "servidoresAsignados", String(formData.servidoresAsignados), handleChange, false, "number")}
+              {Input("Aplicaciones Asignadas", "aplicacionesAsignadas", String(formData.aplicacionesAsignadas), handleChange, false, "number")}
+            </Section>
+
+            {/* Descripción y Observaciones */}
+            <Section title="Descripción">
+              <TextArea label="Descripción" name="descripcion" value={formData.descripcion} onChange={handleChange} />
+              <TextArea label="Observaciones" name="observaciones" value={formData.observaciones} onChange={handleChange} />
+            </Section>
+
+            {/* Botones */}
+            <div className="flex justify-end space-x-4 pt-4 border-t">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
+              >
+                                {isEditing ? "Guardar Cambios" : "Crear Responsable"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+//  Componentes auxiliares
+
+const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <div className="bg-gray-50 p-4 rounded-lg">
+    <h3 className="text-lg font-semibold mb-4">{title}</h3>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{children}</div>
+  </div>
+);
+
+const Input = (
+  label: string,
+  name: string,
+  value: string,
+  onChange: React.ChangeEventHandler<HTMLInputElement>,
+  required: boolean = false,
+  type: string = "text"
+) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      required={required}
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+  </div>
+);
+
+const Select = (
+  label: string,
+  name: string,
+  value: string,
+  onChange: React.ChangeEventHandler<HTMLSelectElement>,
+  options: string[]
+) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+    <select
+      name={name}
+      value={value}
+      onChange={onChange}
+      required
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      {options.map((opt, index) => (
+        <option key={index} value={opt === "Seleccione..." ? "" : opt}>
+          {opt}
+        </option>
+      ))}
+    </select>
+  </div>
+);
+
+const TextArea = ({
+  label,
+  name,
+  value,
+  onChange,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: React.ChangeEventHandler<HTMLTextAreaElement>;
+}) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+    <textarea
+      name={name}
+      value={value}
+      onChange={onChange}
+      rows={4}
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      placeholder={`Escribe ${label.toLowerCase()}...`}
+    />
+  </div>
+);
+
+export default FormularioResponsable;
