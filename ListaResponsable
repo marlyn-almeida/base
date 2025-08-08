@@ -1,0 +1,219 @@
+import React, { useEffect, useState } from "react";
+import FormularioResponsable from "./FormularioResponsable";
+import { mapRolToTipo, getTipoColor } from "../../utils/utils";
+//import { Responsable } from "../../types/empleados";
+import { Responsable } from "./apiResponsables";
+
+const Responsables = () => {
+  const [responsables, setResponsables] = useState<Responsable[]>([]);
+  const [filterTipo, setFilterTipo] = useState("");
+  const [filterEstado, setFilterEstado] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedResponsable, setSelectedResponsable] = useState<Responsable | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    fetch("http://localhost/aplicativo/backend/Cruds/empleados.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accion: "read" }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const rawList = Array.isArray(data) ? data : [];
+        const formateados: Responsable[] = rawList.map((item: any) => ({
+          id: `resp-${item.empcodigo}`,
+          nombre: item.empnombres ?? "",
+          apellido: item.empapellidopaterno ?? "",
+          apellidomaterno: item.empapellidomaterno ?? "",
+          cedula: item.empcedula ?? "",
+          email: item.empemail ?? "",
+          telefono: item.empcelular ?? "",
+          area: item.arenombre ?? "",
+          tipo: mapRolToTipo(item.rolcodigo ?? ""),
+          estado: item.empactivo === 1 ? "Activo" : "Inactivo",
+          fechaIngreso: item.fechainicio?.split("T")[0] ?? "",
+          fechaCreacion: item.empfechacreacion?.split("T")[0] ?? "",
+          usuario: item.empusuario ?? "",
+          perfil: item.empprofile ?? "",
+          observaciones: item.empobservaciones ?? "",
+          servidoresAsignados: item.servidoresAsignados ?? 0,
+          aplicacionesAsignadas: item.aplicacionesAsignadas ?? 0,
+          sexo: item.empsexo ?? "Masculino",
+          tipoSangre: item.emptiposangre ?? "O+",
+          nivel: item.empnivel ?? "",
+          descripcion: item.empdescripcion ?? "",
+          rolcodigo: item.rolcodigo ?? "",
+          percodigo: item.percodigo ?? "",
+          empprofile: item.empprofile ?? "",
+        }));
+        setResponsables(formateados);
+      });
+  }, []);
+
+  const handleEditarResponsable = (resp: Responsable) => {
+    setSelectedResponsable(resp);
+    setIsEditing(true);
+    setIsModalOpen(true);
+  };
+
+  const handleEliminarResponsable = (id: string) => {
+    setResponsables((prev) => prev.filter((r) => r.id !== id));
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedResponsable(null);
+    setIsEditing(false);
+  };
+
+  const handleSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedResponsable(null);
+    setIsEditing(false);
+
+    fetch("http://localhost/aplicativo/backend/Cruds/empleados.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accion: "read" }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const rawList = Array.isArray(data) ? data : [];
+        const formateados: Responsable[] = rawList.map((item: any) => ({
+          id: `resp-${item.id}`,
+          nombre: item.empnombres ?? "",
+          apellido: item.empapellidopaterno ?? "",
+          apellidomaterno: item.empapellidomaterno ?? "",
+          cedula: item.empcedula ?? "",
+          email: item.empemail ?? "",
+          telefono: item.empcelular ?? "",
+          area: item.arenombre ?? "",
+          tipo: mapRolToTipo(item.rolcodigo ?? ""),
+          estado: item.empactivo === 1 ? "Activo" : "Inactivo",
+          fechaIngreso: item.fechainicio?.split("T")[0] ?? "",
+          fechaCreacion: item.empfechacreacion?.split("T")[0] ?? "",
+          usuario: item.empusuario ?? "",
+          perfil: item.empprofile ?? "",
+          observaciones: item.empobservaciones ?? "",
+          servidoresAsignados: item.servidoresAsignados ?? 0,
+          aplicacionesAsignadas: item.aplicacionesAsignadas ?? 0,
+          sexo: item.empsexo ?? "Masculino",
+          tipoSangre: item.emptiposangre ?? "O+",
+          nivel: item.empnivel ?? "",
+          descripcion: item.empdescripcion ?? "",
+          rolcodigo: item.rolcodigo ?? "",
+          percodigo: item.percodigo ?? "",
+          empprofile: item.empprofile ?? "",
+        }));
+        setResponsables(formateados);
+      });
+  };
+
+  const filteredResponsables = responsables.filter((r) => {
+    return (
+      (filterTipo === "" || r.tipo === filterTipo) &&
+      (filterEstado === "" || r.estado === filterEstado)
+    );
+  });
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex space-x-4">
+        <select value={filterTipo} onChange={(e) => setFilterTipo(e.target.value)} className="px-3 py-2 border rounded-lg">
+          <option value="">Todos los tipos</option>
+          <option value="DBA">DBA</option>
+          <option value="INF">INF</option>
+          <option value="WS">WS</option>
+          <option value="APL">APL</option>
+        </select>
+        <select value={filterEstado} onChange={(e) => setFilterEstado(e.target.value)} className="px-3 py-2 border rounded-lg">
+          <option value="">Todos los estados</option>
+          <option value="Activo">Activo</option>
+          <option value="Inactivo">Inactivo</option>
+        </select>
+      </div>
+
+      <div className="space-y-4">
+        {filteredResponsables.map((r) => (
+          <div key={r.id} className="bg-white p-6 rounded-lg shadow-md">
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-center space-x-4">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${getTipoColor(r.tipo).replace("100", "500")}`}>
+                  {r.tipo}
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {r.nombre} {r.apellido}
+                  </h3>
+                  <p className="text-gray-600">{r.email}</p>
+                  <div className="flex items-center space-x-4 mt-1">
+                    <span className={`px-2 py-1 text-xs rounded-full ${getTipoColor(r.tipo)}`}>
+                      {r.tipo}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handleEditarResponsable(r)}
+                  className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleEliminarResponsable(r.id)}
+                  className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Contacto</h4>
+                <div className="text-sm space-y-1">
+                  <div><strong>Teléfono:</strong> {r.telefono}</div>
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Laboral</h4>
+                <div className="text-sm space-y-1">
+                  <div><strong>Área:</strong> {r.area}</div>
+                  <div><strong>Fecha Ingreso:</strong> {new Date(r.fechaIngreso).toLocaleDateString("es-ES")}</div>
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Asignaciones</h4>
+                <div className="text-sm space-y-1">
+                  <div><strong>Servidores:</strong> {r.servidoresAsignados}</div>
+                  <div><strong>Aplicaciones:</strong> {r.aplicacionesAsignadas}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Si no hay resultados */}
+      {filteredResponsables.length === 0 && (
+        <div className="bg-white p-8 rounded-lg shadow-md text-center text-gray-500">
+          <div className="text-lg mb-2">No se encontraron responsables</div>
+          <p className="text-gray-400">Prueba con otros filtros o agrega uno nuevo</p>
+        </div>
+      )}
+
+      {/* Modal de formulario */}
+      <FormularioResponsable
+        responsable={selectedResponsable}
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onSuccess={handleSuccess}
+        isEditing={isEditing}
+      />
+    </div>
+  );
+};
+
+export default Responsables;
