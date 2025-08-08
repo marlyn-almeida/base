@@ -1,0 +1,116 @@
+<?php
+// Creado o modificado por Marlyn Almeida – 06/08/2025
+
+include '../seguridades/incConnect.php';
+include_once '../seguridades/cors.php';
+
+$allowedOrigin = 'http://localhost:3000';
+if ($_SERVER['HTTP_ORIGIN'] === $allowedOrigin) {
+    header("Access-Control-Allow-Origin: $allowedOrigin");
+    header("Access-Control-Allow-Headers: Content-Type");
+    header("Access-Control-Allow-Methods: POST, GET");
+}
+
+header("Content-Type: application/json");
+
+$data = json_decode(file_get_contents("php://input"), true);
+$accion = $data["accion"] ?? null;
+
+if (!$pdo) {
+    echo json_encode(["error" => "No hay conexión a la base de datos"]);
+    exit;
+}
+
+switch ($accion) {
+
+    case "insert":
+        try {
+            $stmt = $pdo->prepare("EXEC insert_employee ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?");
+            $stmt->execute([
+                $data["empnombres"],
+                $data["empapellidopaterno"],
+                $data["empapellidomaterno"],
+                $data["empcedula"],
+                $data["empemail"],
+                $data["empcelular"],
+                $data["emptiposangre"],
+                $data["empsexo"],
+                $data["fechainicio"],
+                $data["empfechacreacion"],
+                $data["empusuario"],
+                $data["empnivel"],
+                $data["empactivo"],
+                $data["empdescripcion"],
+                $data["empobservaciones"],
+                $data["arecodigo"],
+                $data["rolcodigo"],
+                //$data["percodigo"],
+                $data["empprofile"]
+            ]);
+            echo json_encode(["status" => "insertado"]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["error" => $e->getMessage()]);
+        }
+        break;
+
+    case "update":
+        try {
+            $stmt = $pdo->prepare("EXEC update_employee ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?");
+            $stmt->execute([
+                $data["empcodigo"],
+                $data["empnombres"],
+                $data["empapellidopaterno"],
+                $data["empapellidomaterno"],
+                $data["empcedula"],
+                $data["empemail"],
+                $data["empcelular"],
+                $data["emptiposangre"],
+                $data["empsexo"],
+                $data["fechainicio"],
+                $data["empfechacreacion"],
+                $data["empusuario"],
+                $data["empnivel"],
+                $data["empactivo"],
+                $data["empdescripcion"],
+                $data["empobservaciones"],
+                $data["arecodigo"],
+                $data["rolcodigo"],
+                $data["percodigo"],
+                $data["empprofile"]
+            ]);
+            echo json_encode(["status" => "actualizado"]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["error" => $e->getMessage()]);
+        }
+        break;
+
+    case "delete":
+        try {
+            $stmt = $pdo->prepare("EXEC delete_employee ?");
+            $stmt->execute([$data["empcodigo"]]);
+            echo json_encode(["status" => "deshabilitado"]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["error" => $e->getMessage()]);
+        }
+        break;
+
+    case "read":
+        try {
+            $stmt = $pdo->query("EXEC get_employees");
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode($result);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["error" => $e->getMessage()]);
+        }
+        break;
+
+    default:
+        http_response_code(400);
+        echo json_encode(["error" => "Acción no válida"]);
+        break;
+}
+?>
