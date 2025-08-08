@@ -1,0 +1,27 @@
+// Creado por Marlyn Almeida el 07/0/2025
+export interface Responsable {
+  id: string;
+  nombre: string;
+  apellido: string;
+  apellidomaterno: string;
+  cedula: string;
+  email: string;
+  telefono: string;
+  area: string;
+  tipo: string;
+  estado: string;
+  fechaIngreso: string;
+  fechaCreacion: string;
+  usuario: string;
+  servidoresAsignados: number;
+  aplicacionesAsignadas: number;
+  sexo: string;
+  tipoSangre: string;
+  nivel: string;
+  descripcion: string;
+  observaciones: string;
+  rolcodigo: string;
+  percodigo: string;
+  empprofile: string;
+  perfil: string;
+}
