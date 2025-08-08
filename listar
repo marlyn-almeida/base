@@ -1,0 +1,251 @@
+//cambios realizado por marlyn Almeida el 05/08/2025
+import React, { useMemo, useState, useEffect } from 'react';
+import {
+  MagnifyingGlassIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/solid';
+
+interface IIpItem {
+  [key: string]: string | number | null;
+}
+
+const ListaIPs: React.FC = () => {
+  const [originalIps, setOriginalIps] = useState<IIpItem[]>([]);
+  const [ips, setIps] = useState<IIpItem[]>([]);
+  const [filterStatus, setFilterStatus] = useState('');
+  const [searchAttribute, setSearchAttribute] = useState('Direccion_IP');
+  const [searchValue, setSearchValue] = useState('');
+  const [searchTriggered, setSearchTriggered] = useState(false);
+  const [lastSearch, setLastSearch] = useState({ atributo: '', valor: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
+
+  const attributeOptions = [
+    { label: 'Dirección IP', value: 'Direccion_IP' },
+    { label: 'Gateway', value: 'Gateway' },
+    { label: 'Mascara de Subred', value: 'Mascara_Subred' },
+    { label: 'Rango', value: 'Rango' },
+    { label: 'DNS1', value: 'DNS1' },
+    { label: 'DNS2', value: 'DNS2' },
+    { label: 'ID_IP', value: 'ID_IP' },
+  ];
+
+  useEffect(() => {
+    fetch('http://localhost/aplicativo/backend/Cruds/CrudIP.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'read' }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const rawList = Array.isArray(data) ? data : data.data ?? [];
+        const transformed = rawList.map((ip: any) => ({
+          ...ip,
+          status: String(ip.Estado_Ip) === '1' ? 'occupied' : 'available',
+        }));
+        setOriginalIps(transformed);
+        setIps(transformed);
+      })
+      .catch((err) => console.error('Error al obtener IPs:', err));
+  }, []);
+
+  useEffect(() => {
+    let filtrado = [...originalIps];
+
+    if (searchTriggered && searchValue.trim() !== '') {
+      filtrado = filtrado.filter((ip) =>
+        String(ip[searchAttribute]).toLowerCase().includes(searchValue.toLowerCase())
+      );
+    }
+
+    if (filterStatus) {
+      filtrado = filtrado.filter((ip) => ip.status === filterStatus);
+    }
+
+    setIps(filtrado);
+    setCurrentPage(1);
+  }, [searchTriggered, searchValue, searchAttribute, filterStatus]);
+
+  const pageCount = Math.ceil(ips.length / pageSize);
+  const paginatedIps = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return ips.slice(start, start + pageSize);
+  }, [ips, currentPage]);
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold mb-6">Direcciones IP</h1>
+
+      {/*  Controles corregidos */}
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+        {/* Buscar IP */}
+        <div>
+          <label className="text-sm font-medium mb-1 block">Buscar IP</label>
+          <div className="flex items-center gap-2 bg-white border rounded-md p-2 shadow-sm h-[48px]">
+            <select
+              className="border px-2 py-1 text-xs rounded-md bg-white h-full truncate max-w-[120px]"
+              value={searchAttribute}
+              onChange={(e) => setSearchAttribute(e.target.value)}
+            >
+              {attributeOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+
+            <div className="relative flex-grow min-w-[160px]">
+              <input
+                type="text"
+                placeholder={`Buscar ${searchAttribute}...`}
+                className="border px-3 py-2 pl-10 text-sm rounded-md w-full h-full"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+              />
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute top-2.5 left-3" />
+            </div>
+          </div>
+        </div>
+
+        {/* Botón Buscar alineado al centro */}
+        <div className="flex items-end">
+          <button
+            className={`px-4 py-2 text-white text-sm rounded-md h-[48px] ${
+              searchValue.trim() === ''
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+            disabled={searchValue.trim() === ''}
+            onClick={() => {
+              setSearchTriggered(true);
+              setLastSearch({ atributo: searchAttribute, valor: searchValue });
+              setFilterStatus('');
+            }}
+          >
+            Buscar
+          </button>
+        </div>
+
+        {/* Filtro Estado + Ver todas */}
+        <div className="flex justify-between items-end space-x-2">
+          <div>
+            <label className="text-sm font-medium mb-1 block">Estado</label>
+            <select
+              className="border rounded-md px-3 py-2 text-sm w-[140px] h-[48px]"
+              value={filterStatus}
+              onChange={(e) => {
+                setFilterStatus(e.target.value);
+                setSearchTriggered(false);
+                setSearchValue('');
+                setLastSearch({ atributo: '', valor: '' });
+              }}
+            >
+              <option value="">-- Estado --</option>
+              <option value="available">Disponibles</option>
+              <option value="occupied">Ocupados</option>
+            </select>
+          </div>
+
+          <button
+            className="px-4 py-2 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 h-[48px]"
+            onClick={() => {
+              setSearchTriggered(false);
+              setSearchValue('');
+              setFilterStatus('');
+              setLastSearch({ atributo: '', valor: '' });
+              setIps(originalIps);
+              setCurrentPage(1);
+            }}
+          >
+            Ver todas
+          </button>
+        </div>
+      </div>
+
+      {/*  Tabla */}
+      <div className="overflow-x-auto bg-white shadow rounded-lg">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              {paginatedIps.length > 0 &&
+                Object.keys(paginatedIps[0]).map(
+                  (key) =>
+                    key !== 'status' && (
+                      <th
+                        key={key}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >
+                        {key}
+                      </th>
+                    )
+                )}
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Estado
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {paginatedIps.map((ip, index) => (
+              <tr key={index}>
+                {Object.entries(ip).map(
+                  ([key, value]) =>
+                    key !== 'status' && (
+                      <td
+                        key={key}
+                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-700"
+                      >
+                        {value}
+                      </td>
+                    )
+                )}
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                    className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${
+                      ip.status === 'available'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {ip.status === 'available' ? (
+                      <>
+                        <CheckCircleIcon className="h-4 w-4 mr-1" />
+                        Disponible
+                      </>
+                    ) : (
+                      <>
+                        <XCircleIcon className="h-4 w-4 mr-1" />
+                        Ocupado
+                      </>
+                    )}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      
+      </div>
+      {/* Paginación */}
+      <div className="mt-4 flex justify-center items-center space-x-2">
+        <button
+          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage(currentPage - 1)}
+        >
+          Anterior
+        </button>
+        <span className="text-sm font-medium">Página {currentPage} de {pageCount}</span>
+        <button
+          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+          disabled={currentPage === pageCount}
+          onClick={() =>        setCurrentPage(currentPage + 1)}
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default ListaIPs;
