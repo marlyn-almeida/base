@@ -1,0 +1,97 @@
+<?php
+// Creado por Marlyn Almeida 01/08/2025
+
+include '../seguridades/incConnect.php';
+include_once '../seguridades/cors.php';
+
+
+//  Habilita CORS solo para desarrollo
+$allowedOrigin = 'http://localhost:3000'; // Cambia esto según tu frontend
+if ($_SERVER['HTTP_ORIGIN'] === $allowedOrigin) {
+    header("Access-Control-Allow-Origin: $allowedOrigin");
+    header("Access-Control-Allow-Headers: Content-Type");
+    header("Access-Control-Allow-Methods: POST, GET");
+}
+
+//  Fuerza salida como JSON
+header("Content-Type: application/json");
+
+//  Captura el JSON enviado desde React
+$data = json_decode(file_get_contents("php://input"), true);
+$accion = isset($data["accion"]) ? $data["accion"] : null;
+
+//  Valida conexión antes de continuar
+if (!$pdo) {
+    echo json_encode(["error" => "No hay conexión a la base de datos"]);
+    exit;
+}
+
+switch ($accion) {
+
+    case "create":
+        try {
+            $stmt = $pdo->prepare("EXEC InsertIP ?, ?, ?, ?, ?, ?, ?");
+            $stmt->execute([
+                $data["Direccion_IP"],
+                $data["Estado_Ip"],
+                $data["Gateway"],
+                $data["Mascara_Subred"],
+                $data["Rango"],
+                $data["DNS1"],
+                $data["DNS2"]
+            ]);
+            echo json_encode(["status" => "insertado"]);
+        } catch (Exception $e) {
+            http_response_code(500); // 🚨 Muestra error HTTP si falla
+            echo json_encode(["error" => $e->getMessage()]);
+        }
+        break;
+
+    case "read":
+        try {
+            $stmt = $pdo->query("EXEC GetAllIPs");
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode($result);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["error" => $e->getMessage()]);
+        }
+        break;
+
+    case "update":
+        try {
+            $stmt = $pdo->prepare("EXEC UpdateIP ?, ?, ?, ?, ?, ?, ?, ?");
+            $stmt->execute([
+                $data["ID_IP"],
+                $data["Direccion_IP"],
+                $data["Estado_Ip"],
+                $data["Gateway"],
+                $data["Mascara_Subred"],
+                $data["Rango"],
+                $data["DNS1"],
+                $data["DNS2"]
+            ]);
+            echo json_encode(["status" => "actualizado"]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["error" => $e->getMessage()]);
+        }
+        break;
+
+    case "delete":
+        try {
+            $stmt = $pdo->prepare("EXEC DeleteIP ?");
+            $stmt->execute([$data["ID_IP"]]);
+            echo json_encode(["status" => "eliminado"]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["error" => $e->getMessage()]);
+        }
+        break;
+
+    default:
+        http_response_code(400);
+        echo json_encode(["error" => "Acción no válida"]);
+        break;
+}
+?>
