@@ -1,0 +1,417 @@
+import React from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { 
+  ArrowLeftIcon, 
+  DocumentTextIcon, 
+  ShieldCheckIcon,
+  ServerIcon,
+  CodeBracketIcon,
+  CircleStackIcon,
+  CalendarIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  XCircleIcon
+} from '@heroicons/react/24/outline';
+
+interface Aplicacion {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  criticidad: 'Alta' | 'Media' | 'Baja';
+  url: string;
+  servidoresAsociados: string[];
+  estado: 'Activa' | 'Inactiva' | 'Mantenimiento';
+  fechaRegistro: string;
+  stack: {
+    lenguaje: string;
+    plataforma: string;
+    frameworks: string[];
+  };
+  versionApi: string;
+  soporte: {
+    fechaFinSoporte: string;
+    soporteActivo: boolean;
+    tipoSoporte: 'Extendido' | 'Estándar' | 'Básico' | 'Sin soporte';
+  };
+  baseDatos: {
+    motor: string;
+    version: string;
+  };
+  documentacion: {
+    url?: string;
+    disponible: boolean;
+    fechaActualizacion?: string;
+  };
+  licencia: {
+    tipo: 'Comercial' | 'Open Source' | 'Freemium' | 'Enterprise';
+    vigente: boolean;
+    fechaVencimiento?: string;
+    proveedor?: string;
+  };
+}
+
+const DetalleAplicacion: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  // Mock data - en implementación real vendría de una API
+  const aplicaciones: Aplicacion[] = [
+    {
+      id: 1,
+      nombre: 'Portal Web Principal',
+      descripcion: 'Portal corporativo de PetroEcuador para servicios públicos',
+      criticidad: 'Alta',
+      url: 'https://portal.petroecuador.gob.ec',
+      servidoresAsociados: ['PROD-WEB-01', 'PROD-WEB-02'],
+      estado: 'Activa',
+      fechaRegistro: '2025-01-10',
+      stack: {
+        lenguaje: 'JavaScript/TypeScript',
+        plataforma: 'Node.js',
+        frameworks: ['React', 'Express.js', 'Next.js']
+      },
+      versionApi: 'v2.1.5',
+      soporte: {
+        fechaFinSoporte: '2026-12-31',
+        soporteActivo: true,
+        tipoSoporte: 'Estándar'
+      },
+      baseDatos: {
+        motor: 'PostgreSQL',
+        version: '15.2'
+      },
+      documentacion: {
+        url: 'https://docs.petroecuador.gob.ec/portal',
+        disponible: true,
+        fechaActualizacion: '2024-12-15'
+      },
+      licencia: {
+        tipo: 'Enterprise',
+        vigente: true,
+        fechaVencimiento: '2026-01-10',
+        proveedor: 'Microsoft Azure'
+      }
+    },
+  ];
+
+  const aplicacion = aplicaciones.find(app => app.id === parseInt(id || '0'));
+
+  if (!aplicacion) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">Aplicación no encontrada</h2>
+          <Link
+            to="/aplicaciones"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Volver a Aplicaciones
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const getCriticidadColor = (criticidad: string) => {
+    switch (criticidad) {
+      case 'Alta': return 'bg-red-100 text-red-800';
+      case 'Media': return 'bg-yellow-100 text-yellow-800';
+      case 'Baja': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getEstadoColor = (estado: string) => {
+    switch (estado) {
+      case 'Activa': return 'bg-green-100 text-green-800';
+      case 'Inactiva': return 'bg-red-100 text-red-800';
+      case 'Mantenimiento': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getSoporteColor = (tipoSoporte: string, soporteActivo: boolean) => {
+    if (!soporteActivo) return 'bg-red-100 text-red-800';
+    switch (tipoSoporte) {
+      case 'Extendido': return 'bg-green-100 text-green-800';
+      case 'Estándar': return 'bg-blue-100 text-blue-800';
+      case 'Básico': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-red-100 text-red-800';
+    }
+  };
+
+  const getLicenciaColor = (vigente: boolean) => {
+    return vigente ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => navigate('/aplicaciones')}
+                className="flex items-center text-gray-600 hover:text-gray-900"
+              >
+                <ArrowLeftIcon className="h-5 w-5 mr-2" />
+                Volver
+              </button>
+              <h1 className="text-xl font-semibold text-gray-900">
+                Detalles de Aplicación
+              </h1>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header de la aplicación */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{aplicacion.nombre}</h2>
+              <p className="text-gray-600 mb-4">{aplicacion.descripcion}</p>
+              <div className="flex items-center space-x-4">
+                <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getCriticidadColor(aplicacion.criticidad)}`}>
+                  {aplicacion.criticidad} Criticidad
+                </span>
+                <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getEstadoColor(aplicacion.estado)}`}>
+                  {aplicacion.estado}
+                </span>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-500">Versión API</p>
+              <p className="text-lg font-semibold text-gray-900">{aplicacion.versionApi}</p>
+            </div>
+          </div>
+          
+          <div className="border-t pt-4">
+            <p className="text-sm text-gray-500 mb-2">URL de Acceso:</p>
+            <a 
+              href={aplicacion.url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 font-medium"
+            >
+              {aplicacion.url}
+            </a>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Stack de Programación */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center mb-4">
+              <CodeBracketIcon className="h-6 w-6 text-blue-600 mr-2" />
+              <h3 className="text-lg font-semibold text-gray-900">Stack de Programación</h3>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium text-gray-700">Lenguaje Principal</p>
+                <p className="text-lg text-gray-900">{aplicacion.stack.lenguaje}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700">Plataforma</p>
+                <p className="text-lg text-gray-900">{aplicacion.stack.plataforma}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700">Frameworks</p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {aplicacion.stack.frameworks.map((framework, index) => (
+                    <span 
+                      key={index}
+                      className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full"
+                    >
+                      {framework}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Base de Datos */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center mb-4">
+              <CircleStackIcon className="h-6 w-6 text-green-600 mr-2" />
+              <h3 className="text-lg font-semibold text-gray-900">Base de Datos</h3>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium text-gray-700">Motor de BD</p>
+                <p className="text-lg text-gray-900">{aplicacion.baseDatos.motor}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700">Versión</p>
+                <p className="text-lg text-gray-900">{aplicacion.baseDatos.version}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Estados de Soporte */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center mb-4">
+              <ShieldCheckIcon className="h-6 w-6 text-purple-600 mr-2" />
+              <h3 className="text-lg font-semibold text-gray-900">Estado de Soporte</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Estado Actual</span>
+                <span className={`inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full ${getSoporteColor(aplicacion.soporte.tipoSoporte, aplicacion.soporte.soporteActivo)}`}>
+                  {aplicacion.soporte.soporteActivo ? (
+                    <CheckCircleIcon className="h-4 w-4 mr-1" />
+                  ) : (
+                    <XCircleIcon className="h-4 w-4 mr-1" />
+                  )}
+                  {aplicacion.soporte.tipoSoporte}
+                </span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700">Fecha Fin de Soporte</p>
+                <div className="flex items-center mt-1">
+                  <CalendarIcon className="h-4 w-4 text-gray-400 mr-2" />
+                  <p className="text-lg text-gray-900">
+                    {new Date(aplicacion.soporte.fechaFinSoporte).toLocaleDateString('es-ES')}
+                  </p>
+                </div>
+                {new Date(aplicacion.soporte.fechaFinSoporte) < new Date() && (
+                  <div className="flex items-center mt-2 text-red-600">
+                    <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
+                    <span className="text-sm">Soporte vencido</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Licencia de Software */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center mb-4">
+              <DocumentTextIcon className="h-6 w-6 text-orange-600 mr-2" />
+              <h3 className="text-lg font-semibold text-gray-900">Licencia de Software</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Estado</span>
+                <span className={`inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full ${getLicenciaColor(aplicacion.licencia.vigente)}`}>
+                  {aplicacion.licencia.vigente ? (
+                    <CheckCircleIcon className="h-4 w-4 mr-1" />
+                  ) : (
+                    <XCircleIcon className="h-4 w-4 mr-1" />
+                  )}
+                  {aplicacion.licencia.vigente ? 'Vigente' : 'Vencida'}
+                </span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700">Tipo de Licencia</p>
+                <p className="text-lg text-gray-900">{aplicacion.licencia.tipo}</p>
+              </div>
+              {aplicacion.licencia.proveedor && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Proveedor</p>
+                  <p className="text-lg text-gray-900">{aplicacion.licencia.proveedor}</p>
+                </div>
+              )}
+              {aplicacion.licencia.fechaVencimiento && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Fecha de Vencimiento</p>
+                  <div className="flex items-center mt-1">
+                    <CalendarIcon className="h-4 w-4 text-gray-400 mr-2" />
+                    <p className="text-lg text-gray-900">
+                      {new Date(aplicacion.licencia.fechaVencimiento).toLocaleDateString('es-ES')}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Documentación Técnica */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center mb-4">
+              <DocumentTextIcon className="h-6 w-6 text-indigo-600 mr-2" />
+              <h3 className="text-lg font-semibold text-gray-900">Documentación Técnica</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Disponibilidad</span>
+                <span className={`inline-flex items-center px-3 py-1 text-sm font-semibold rounded-full ${aplicacion.documentacion.disponible ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {aplicacion.documentacion.disponible ? (
+                    <CheckCircleIcon className="h-4 w-4 mr-1" />
+                  ) : (
+                    <XCircleIcon className="h-4 w-4 mr-1" />
+                  )}
+                  {aplicacion.documentacion.disponible ? 'Disponible' : 'No disponible'}
+                </span>
+              </div>
+              {aplicacion.documentacion.url && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">Enlace a Documentación</p>
+                  <a 
+                    href={aplicacion.documentacion.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Ver Documentación Técnica
+                  </a>
+                </div>
+              )}
+              {aplicacion.documentacion.fechaActualizacion && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Última Actualización</p>
+                  <div className="flex items-center mt-1">
+                    <CalendarIcon className="h-4 w-4 text-gray-400 mr-2" />
+                    <p className="text-gray-900">
+                      {new Date(aplicacion.documentacion.fechaActualizacion).toLocaleDateString('es-ES')}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Servidores Asociados */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center mb-4">
+              <ServerIcon className="h-6 w-6 text-gray-600 mr-2" />
+              <h3 className="text-lg font-semibold text-gray-900">Servidores Asociados</h3>
+            </div>
+            <div className="space-y-2">
+              {aplicacion.servidoresAsociados.map((servidor, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="font-medium text-gray-900">{servidor}</span>
+                  <Link
+                    to="/servidores"
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  >
+                    Ver en Servidores
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Información adicional */}
+        <div className="bg-white rounded-lg shadow-md p-6 mt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Información Adicional</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="font-medium text-gray-700">Fecha de Registro</p>
+              <p className="text-gray-900">{new Date(aplicacion.fechaRegistro).toLocaleDateString('es-ES')}</p>
+            </div>
+            <div>
+              <p className="font-medium text-gray-700">ID de Aplicación</p>
+              <p className="text-gray-900">APP-{aplicacion.id.toString().padStart(3, '0')}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DetalleAplicacion;
