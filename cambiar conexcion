@@ -1,0 +1,102 @@
+1. Corrección de Ruta y Ejecución Manual de Apache
+Solución paso a paso: Detuvimos el servicio desde xamp o si tenemos permisos de administrador con el comando:
+
+net stop wampapache64
+
+📌 Ejecutamos Apache manualmente:
+cd C:\wamp64\bin\apache\apache2.4.62.1\bin
+httpd.exe
+Esto levanta con el usuario logeado para la autenticación de windows, permitiendo conexión autenticada con SQL Server.
+🧠 2. Activación de sqlsrv en PHP 8.3.14
+Ruta: C:\wamp64\bin\php\php8.3.14\php.exe
+Archivos DLL requeridos:
+•	php_sqlsrv_83_ts_x64.dll
+•	php_pdo_sqlsrv_83_ts_x64.dll
+🔧 Copiamos en: C:\wamp64\bin\php\php8.3.14\ext
+Agregamos en php.ini: C:\wamp64\bin\php\php8.3.14\php.ini
+extension=php_sqlsrv.dll
+extension=php_pdo_sqlsrv.dll 
+
+extension_dir = "C:\php\ext"  
+extension=php_pdo_sqlsrv_83_ts_x64.dll
+
+extension=php_sqlsrv_83_ts_x64.dll
+
+🔁 Reiniciamos WAMP y confirmamos que en phpinfo()  la extensión aparezca ✅.
+Agregamos en php C:\wamp64\bin\apache\apache2.4.62.1\bin
+extension=php_sqlsrv_83_ts_x64.dll
+extension=php_pdo_sqlsrv_83_ts_x64.dll
+
+🖥️ 3. Adaptación de la Conexión de PHP
+Antes (MySQL):
+
+$artecolonial = mysqli_connect($host, $user, $pw, $db);
+Después (SQL Server):
+
+$serverName = "SPQ-SQLTST1";
+$bd_DATABASE = "MSQCATPRO";
+
+$options = [
+    "Database"               => $bd_DATABASE,
+    "CharacterSet"           => "UTF-8",
+    "TrustServerCertificate" => true
+];
+
+$GLOBALS['artecolonial'] = sqlsrv_connect($serverName, $options);
+
+
+📌 Eliminamos las variables de entorno DES, TST y dejamos solo la base de producción.
+🔍 4. Script PHP para Prueba de Conexión + Consulta
+<?php
+$serverName  = "SPQ-SQLTST1";
+$bd_DATABASE = "MSQCATPRO";
+
+$options = [
+    'Database' => $bd_DATABASE,
+    'CharacterSet' => 'UTF-8',
+    'TrustServerCertificate' => true
+];
+
+$GLOBALS['artecolonial'] = sqlsrv_connect($serverName, $options);
+
+$sql = "
+    SELECT empcodigo, empnombres, empapellidopaterno, empemail
+    FROM dbo.empleado
+    WHERE empactivo = 1
+    ORDER BY empnombres
+";
+
+$stmt = sqlsrv_query($GLOBALS['artecolonial'], $sql, [], ['Scrollable' => SQLSRV_CURSOR_KEYSET]);
+$total = sqlsrv_num_rows($stmt);
+
+echo "Empleados activos: {$total}<br>";
+while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+    echo "• {$row['empcodigo']} - {$row['empnombres']} {$row['empapellidopaterno']} ({$row['empemail']})<br>";
+}
+
+sqlsrv_free_stmt($stmt);
+sqlsrv_close($GLOBALS['artecolonial']);
+?>
+
+
+🔁 5. Configuración del Entorno en VS Code
+🔧 settings.json antes:
+{
+    "tabnine.experimentalAutoImports": true,
+    "php.debug.executablePath": ""
+}
+
+🔧 settings.json actualizado:
+
+{
+  "php.debug.executablePath": "C:\\wamp64\\bin\\php\\php8.3.14\\php.exe",
+  "tabnine.experimentalAutoImports": true
+}
+
+🧪6.  Diagnóstico y Verificación Final
+✅ Accedemos a: http://localhost/phpinfo.php
+Confirmamos:
+•	PHP 8.3.14 activo
+•	sqlsrv cargado
+•	Apache corriendo en modo manual con tu usuario real
+
