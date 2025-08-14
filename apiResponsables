@@ -1,10 +1,9 @@
-// Creado o modificado por Marlyn Almeida el 06/08/2025.
-// Descripción: Se actualizó la definición de Responsable y las funciones de API para reflejar los campos reales del modelo,
-// incluyendo cedula, fecha de creación, usuario, perfil, observaciones, bitácora y lógica de desactivación.
+// Creado o modificado por Marlyn Almeida el 14/08/2025.
+// Descripción: Alineado con backend actualizado. Se eliminó el campo tipo y empprofile, y se ajustó el envío de códigos.
 
 const API_URL = "http://localhost/aplicativo/backend/Cruds/empleados.php";
 
-//  Interfaz Responsable
+// 🧩 Interfaz Responsable
 export type Responsable = {
   id: string;
   cedula: string;
@@ -14,25 +13,33 @@ export type Responsable = {
   email: string;
   telefono: string;
   area: string;
-  tipo: "DBA" | "INF" | "WS" | "APL";
+  arecodigo: number;
+  rol: string;
+  rolcodigo: number;
+  perfil: string;
+  percodigo: number;
   estado: "Activo" | "Inactivo";
   fechaIngreso: string;
   fechaCreacion: string;
   usuario: string;
-  perfil: string;
   observaciones: string;
   servidoresAsignados: number;
   aplicacionesAsignadas: number;
   sexo: "Masculino" | "Femenino" | "Otro";
   tipoSangre: "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-";
-  nivel: string;
   descripcion: string;
-  rolcodigo: string;
-  percodigo: string;
-  empprofile: string;
 };
 
-//  Obtener responsables
+// 🧩 Tipo de respuesta del backend
+type BackendResponse = {
+  status: string;
+  mensaje?: string;
+};
+
+// 📅 Fecha actual
+const getToday = (): string => new Date().toISOString().split("T")[0];
+
+// 📥 Obtener responsables
 export const obtenerResponsables = async (): Promise<Responsable[]> => {
   try {
     const res = await fetch(API_URL, {
@@ -43,7 +50,15 @@ export const obtenerResponsables = async (): Promise<Responsable[]> => {
 
     if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
 
-    const data = await res.json();
+    const text = await res.text();
+
+    if (text.trim().startsWith("<")) {
+      console.error("⚠️ El backend devolvió HTML en lugar de JSON:");
+      console.error(text);
+      throw new Error("Respuesta no válida del servidor (HTML recibido)");
+    }
+
+    const data = JSON.parse(text);
 
     if (!Array.isArray(data)) throw new Error("Respuesta inesperada del backend");
 
@@ -56,22 +71,21 @@ export const obtenerResponsables = async (): Promise<Responsable[]> => {
       email: item.empemail ?? "",
       telefono: item.empcelular ?? "",
       area: item.arenombre ?? "",
-      tipo: mapRolToTipo(item.rolcodigo), // ✅ Aquí se ajustó el tipo
+      rol: item.rolnombre ?? "",
+      perfil: item.pernombre ?? "",
+      arecodigo: item.arecodigo ?? 0,
+      rolcodigo: item.rolcodigo ?? 0,
+      percodigo: item.percodigo ?? 0,
       estado: item.empactivo === 1 ? "Activo" : "Inactivo",
       fechaIngreso: item.fechainicio?.split("T")[0] ?? getToday(),
       fechaCreacion: item.empfechacreacion?.split("T")[0] ?? "",
       usuario: item.empusuario ?? "",
-      perfil: item.empprofile ?? "",
-      observaciones: item.empobservacion ?? "",
+      observaciones: item.empobservaciones ?? "",
       servidoresAsignados: item.servidoresAsignados ?? 0,
       aplicacionesAsignadas: item.aplicacionesAsignadas ?? 0,
       sexo: item.empsexo ?? "Otro",
       tipoSangre: item.empsangre ?? "O+",
-      nivel: item.empnivel ?? "",
       descripcion: item.empdescripcion ?? "",
-      rolcodigo: String(item.rolcodigo ?? ""),
-      percodigo: String(item.percodigo ?? ""),
-      empprofile: item.empprofile ?? "",
     }));
   } catch (error) {
     console.error("Error al obtener responsables:", error);
@@ -79,15 +93,14 @@ export const obtenerResponsables = async (): Promise<Responsable[]> => {
   }
 };
 
-//  Crear responsable
+// 📤 Crear responsable
 export const crearResponsable = async (r: Responsable): Promise<boolean> => {
   try {
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        accion: "create",
-        empcodigo: parseInt(r.id.replace("resp-", "")),
+        accion: "insert",
         empcedula: r.cedula,
         empnombres: r.nombre,
         empapellidopaterno: r.apellido,
@@ -95,22 +108,27 @@ export const crearResponsable = async (r: Responsable): Promise<boolean> => {
         empemail: r.email,
         empcelular: r.telefono,
         empactivo: r.estado === "Activo" ? 1 : 0,
-        empnivel: r.nivel,
         empusuario: r.usuario,
-        empprofile: r.empprofile,
         empsexo: r.sexo,
         empsangre: r.tipoSangre,
         empdescripcion: r.descripcion,
-        empobservacion: r.observaciones,
-        arecodigo: mapAreaToCodigo(r.area),
-        percodigo: r.percodigo,
+        empobservaciones: r.observaciones,
+        arecodigo: r.arecodigo,
         rolcodigo: r.rolcodigo,
+        percodigo: r.percodigo,
         fechainicio: r.fechaIngreso,
-        empfechacreacion: getToday(),
       }),
     });
 
-    const result = await res.json();
+    const text = await res.text();
+
+    if (text.trim().startsWith("<")) {
+      console.error("⚠️ El backend devolvió HTML en lugar de JSON:");
+      console.error(text);
+      throw new Error("Respuesta no válida del servidor (HTML recibido)");
+    }
+
+    const result: BackendResponse = JSON.parse(text);
     return result.status === "insertado";
   } catch (error) {
     console.error("Error al crear responsable:", error);
@@ -118,7 +136,7 @@ export const crearResponsable = async (r: Responsable): Promise<boolean> => {
   }
 };
 
-//  Editar responsable
+// ✏️ Editar responsable
 export const editarResponsable = async (r: Responsable): Promise<boolean> => {
   try {
     const res = await fetch(API_URL, {
@@ -134,21 +152,27 @@ export const editarResponsable = async (r: Responsable): Promise<boolean> => {
         empemail: r.email,
         empcelular: r.telefono,
         empactivo: r.estado === "Activo" ? 1 : 0,
-        empnivel: r.nivel,
         empusuario: r.usuario,
-        empprofile: r.empprofile,
         empsexo: r.sexo,
         empsangre: r.tipoSangre,
         empdescripcion: r.descripcion,
-        empobservacion: r.observaciones,
-        arecodigo: mapAreaToCodigo(r.area),
-        percodigo: r.percodigo,
+        empobservaciones: r.observaciones,
+        arecodigo: r.arecodigo,
         rolcodigo: r.rolcodigo,
+        percodigo: r.percodigo,
         fechainicio: r.fechaIngreso,
       }),
     });
 
-    const result = await res.json();
+    const text = await res.text();
+
+    if (text.trim().startsWith("<")) {
+      console.error("⚠️ El backend devolvió HTML en lugar de JSON:");
+      console.error(text);
+      throw new Error("Respuesta no válida del servidor (HTML recibido)");
+    }
+
+    const result: BackendResponse = JSON.parse(text);
     return result.status === "actualizado";
   } catch (error) {
     console.error("Error al editar responsable:", error);
@@ -156,7 +180,7 @@ export const editarResponsable = async (r: Responsable): Promise<boolean> => {
   }
 };
 
-//  Eliminar responsable
+// 🗑️ Eliminar responsable
 export const eliminarResponsable = async (id: string): Promise<boolean> => {
   try {
     const res = await fetch(API_URL, {
@@ -168,35 +192,18 @@ export const eliminarResponsable = async (id: string): Promise<boolean> => {
       }),
     });
 
-    const result = await res.json();
+    const text = await res.text();
+
+    if (text.trim().startsWith("<")) {
+      console.error("⚠️ El backend devolvió HTML en lugar de JSON:");
+      console.error(text);
+      throw new Error("Respuesta no válida del servidor (HTML recibido)");
+    }
+
+    const result: BackendResponse = JSON.parse(text);
     return result.status === "deshabilitado";
   } catch (error) {
     console.error("Error al eliminar responsable:", error);
     return false;
   }
 };
-
-//  Mapeos
-
-const mapRolToTipo = (rol: number): Responsable["tipo"] => {
-  const map: Record<number, Responsable["tipo"]> = {
-    1: "DBA",
-    2: "INF",
-    3: "WS",
-    4: "APL",
-  };
-  return map[rol] ?? "APL";
-};
-
-const mapAreaToCodigo = (area: string): number => {
-  const map: Record<string, number> = {
-    "Aplicaciones y Arquitectura": 10,
-    "Centro de datos": 20,
-    "Control de operaciones": 30,
-    "Administrativas": 40,
-  };
-  return map[area] ?? 0;
-};
-
-//  Fecha actual en formato YYYY-MM-DD
-const getToday = (): string => new Date().toISOString().split("T")[0];
