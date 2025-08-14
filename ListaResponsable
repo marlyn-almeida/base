@@ -1,337 +1,237 @@
-// Creado por Marlyn Almeida – 14/08/2025
-import React, { useState, useEffect } from "react";
-import {
-  Responsable,
-  crearResponsable,
-  editarResponsable,
-} from "./apiResponsables";
+import React, { useEffect, useState } from "react";
+import FormularioResponsable from "./FormularioResponsable";
+import { Responsable } from "./apiResponsables";
 
-interface Props {
-  responsable: Responsable | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  isEditing: boolean;
-}
+const Responsables = () => {
+  const [responsables, setResponsables] = useState<Responsable[]>([]);
+  const [filterRol, setFilterRol] = useState("");
+  const [filterEstado, setFilterEstado] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedResponsable, setSelectedResponsable] = useState<Responsable | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
-const FormularioResponsable: React.FC<Props> = ({
-  responsable,
-  isOpen,
-  onClose,
-  onSuccess,
-  isEditing,
-}) => {
-  const [formData, setFormData] = useState<Responsable | null>(null);
-  const [error, setError] = useState<string>("");
-  const [mensaje, setMensaje] = useState<string>("");
-
-  const roles = [
-    { codigo: 1, nombre: "DBA" },
-    { codigo: 2, nombre: "INF" },
-    { codigo: 3, nombre: "WS" },
-    { codigo: 4, nombre: "APL" },
-  ];
-
-  const perfiles = [
-    { codigo: 101, nombre: "Administrador" },
-    { codigo: 102, nombre: "Auditor" },
-    { codigo: 103, nombre: "Operador" },
-  ];
-
-  const areas = [
-    { codigo: 10, nombre: "Aplicaciones y Arquitectura" },
-    { codigo: 20, nombre: "Centro de datos" },
-    { codigo: 30, nombre: "Control de operaciones" },
-    { codigo: 40, nombre: "Administrativas" },
-  ];
-
-  const convertirFecha = (fecha: string | undefined): string => {
-    if (!fecha) return new Date().toISOString().split("T")[0];
-    if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return fecha;
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(fecha)) {
-      const [dia, mes, año] = fecha.split("/");
-      return `${año}-${mes}-${dia}`;
-    }
-    return new Date().toISOString().split("T")[0];
+  const cargarResponsables = () => {
+    fetch("http://localhost/aplicativo/backend/Cruds/empleados.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accion: "read" }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const rawList = Array.isArray(data) ? data : [];
+        const formateados: Responsable[] = rawList.map((item: any) => ({
+          id: `resp-${item.empcodigo}`,
+          nombre: item.empnombres ?? "",
+          apellido: item.empapellidopaterno ?? "",
+          apellidomaterno: item.empapellidomaterno ?? "",
+          cedula: item.empcedula ?? "",
+          email: item.empemail ?? "",
+          telefono: item.empcelular ?? "",
+          area: item.arenombre ?? "",
+          rol: item.rolnombre ?? "",
+          perfil: item.pernombre ?? "",
+          estado: item.empactivo === 1 ? "Activo" : "Inactivo",
+          fechaIngreso: item.fechainicio?.split("T")[0] ?? "",
+          fechaCreacion: item.empfechacreacion?.split("T")[0] ?? "",
+          usuario: item.empusuario ?? "",
+          observaciones: item.empobservaciones ?? "",
+          servidoresAsignados: item.servidoresAsignados ?? 0,
+          aplicacionesAsignadas: item.aplicacionesAsignadas ?? 0,
+          sexo: item.empsexo ?? "",
+          tipoSangre: item.empsangre ?? "",
+          descripcion: item.empdescripcion ?? "",
+          arecodigo: 0,
+          rolcodigo: 0,
+          percodigo: 0,
+        }));
+        setResponsables(formateados);
+      });
   };
 
   useEffect(() => {
-    const defaultData: Responsable = {
-      id: responsable?.id ?? `resp-${Date.now()}`,
-      nombre: "",
-      apellido: "",
-      apellidomaterno: "",
-      cedula: "",
-      email: "",
-      telefono: "",
-      area: "",
-      arecodigo: areas[0].codigo,
-      rol: "",
-      rolcodigo: roles[0].codigo,
-      perfil: "",
-      percodigo: perfiles[0].codigo,
-      estado: "Activo",
-      fechaIngreso: new Date().toISOString().split("T")[0],
-      fechaCreacion: "",
-      usuario: "admin",
-      servidoresAsignados: 0,
-      aplicacionesAsignadas: 0,
-      sexo: "Masculino",
-      tipoSangre: "O+",
-      descripcion: "",
-      observaciones: "",
-    };
+    cargarResponsables();
+  }, []);
 
-    const normalizarResponsable = (r: Responsable): Responsable => ({
-      ...defaultData,
-      ...r,
-      telefono: r.telefono ?? "",
-      descripcion: r.descripcion ?? "",
-      observaciones: r.observaciones ?? "",
-      tipoSangre: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].includes(r.tipoSangre ?? "") ? r.tipoSangre! : "O+",
-      sexo: ["Masculino", "Femenino", "Otro"].includes(r.sexo ?? "") ? r.sexo! : "Masculino",
-      estado: ["Activo", "Inactivo"].includes(r.estado ?? "") ? r.estado! : "Activo",
-      fechaIngreso: convertirFecha(r.fechaIngreso),
-      arecodigo: areas.some(a => a.codigo === r.arecodigo) ? r.arecodigo : areas[0].codigo,
-      rolcodigo: roles.some(rp => rp.codigo === r.rolcodigo) ? r.rolcodigo : roles[0].codigo,
-      percodigo: perfiles.some(p => p.codigo === r.percodigo) ? r.percodigo : perfiles[0].codigo,
-    });
-
-    const datos = responsable ? normalizarResponsable(responsable) : defaultData;
-    setFormData(datos);
-    setError("");
-    setMensaje("");
-  }, [responsable]);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    if (!formData) return;
-
-    let castedValue: any = value;
-
-    if (["servidoresAsignados", "aplicacionesAsignadas", "arecodigo", "rolcodigo", "percodigo"].includes(name)) {
-      castedValue = parseInt(value) || 0;
-    }
-
-    setFormData((prev) => prev ? { ...prev, [name]: castedValue } : null);
+  const handleEditarResponsable = (resp: Responsable) => {
+    setSelectedResponsable(resp);
+    setIsEditing(true);
+    setIsModalOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData) return;
-
-    const requiredFields = [
-      "nombre", "apellido", "apellidomaterno", "cedula", "email",
-      "sexo", "estado", "fechaIngreso", "rolcodigo", "percodigo", "arecodigo"
-    ];
-    const missing = requiredFields.filter((field) => !formData[field as keyof Responsable]);
-    if (missing.length > 0) {
-      setError("Por favor, complete todos los campos obligatorios.");
-      return;
-    }
-
-    const enrichedData: Responsable = {
-      ...formData,
-      fechaCreacion: new Date().toISOString().split("T")[0],
-      usuario: "admin",
-    };
-
-    const exito = isEditing
-      ? await editarResponsable(enrichedData)
-      : await crearResponsable(enrichedData);
-
-    if (exito) {
-      setMensaje("Responsable guardado correctamente.");
-      onSuccess();
-      onClose();
-    } else {
-      setError("Error al guardar responsable.");
-    }
+  const handleEliminarResponsable = (id: string) => {
+    setResponsables((prev) => prev.filter((r) => r.id !== id));
   };
 
-  if (!isOpen || !formData) return null;
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedResponsable(null);
+    setIsEditing(false);
+  };
+
+  const handleSuccess = () => {
+    handleModalClose();
+    cargarResponsables();
+  };
+
+  const filteredResponsables = responsables.filter((r) => {
+    const matchesRol = filterRol === "" || r.rol === filterRol;
+    const matchesEstado = filterEstado === "" || r.estado === filterEstado;
+    const matchesSearch =
+      searchTerm === "" ||
+      r.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.area.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesRol && matchesEstado && matchesSearch;
+  });
+
+  const estadisticas = {
+    total: responsables.length,
+    activos: responsables.filter((r) => r.estado === "Activo").length,
+    inactivos: responsables.filter((r) => r.estado === "Inactivo").length,
+    dba: responsables.filter((r) => r.rol === "DBA").length,
+    inf: responsables.filter((r) => r.rol === "INF").length,
+    ws: responsables.filter((r) => r.rol === "WS").length,
+    apl: responsables.filter((r) => r.rol === "APL").length,
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">
-              {isEditing ? "Editar Responsable" : "Nuevo Responsable"}
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-2xl"
-            >
-              ×
-            </button>
-          </div>
-
-          {error && <div className="mb-4 text-red-600 font-medium">{error}</div>}
-          {mensaje && <div className="mb-4 text-green-600 font-medium">{mensaje}</div>}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <Section title="Información Personal">
-              {Input("Nombre *", "nombre", formData.nombre, handleChange, true)}
-              {Input("Apellido Paterno *", "apellido", formData.apellido, handleChange, true)}
-              {Input("Apellido Materno *", "apellidomaterno", formData.apellidomaterno, handleChange, true)}
-              {Input("Cédula *", "cedula", formData.cedula, handleChange, true)}
-              {Input("Email *", "email", formData.email, handleChange, true, "email")}
-              {Input("Teléfono", "telefono", formData.telefono, handleChange)}
-              {Select("Sexo *", "sexo", formData.sexo, handleChange, ["Masculino", "Femenino", "Otro"])}
-              {Select("Tipo de Sangre", "tipoSangre", formData.tipoSangre ?? "", handleChange, ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])}
-            </Section>
-
-            <Section title="Información Laboral">
-              <SelectCodigo label="Área *" name="arecodigo" value={formData.arecodigo} onChange={handleChange} options={areas} />
-              <SelectCodigo label="Rol *" name="rolcodigo" value={formData.rolcodigo} onChange={handleChange} options={roles} />
-              <SelectCodigo label="Perfil *" name="percodigo" value={formData.percodigo} onChange={handleChange} options={perfiles} />
-              {Select("Estado *", "estado", formData.estado, handleChange, ["Activo", "Inactivo"])}
-              {Input("Fecha de Ingreso *", "fechaIngreso", formData.fechaIngreso, handleChange, true, "date")}
-            </Section>
-
-            <Section title="Asignaciones">
-              {Input("Servidores Asignados", "servidoresAsignados", String(formData.servidoresAsignados), handleChange, false, "number")}
-              {Input("Aplicaciones Asignadas", "aplicacionesAsignadas", String(formData.aplicacionesAsignadas), handleChange, false, "number")}
-            </Section>
-
-            <Section title="Descripción">
-              <TextArea label="Descripción" name="descripcion" value={formData.descripcion} onChange={handleChange} />
-              <TextArea label="Observaciones" name="observaciones" value={formData.observaciones} onChange={handleChange} />
-            </Section>
-
-            <div className="flex justify-end space-x-4 pt-4 border-t">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
-              >
-                {isEditing ? "Guardar Cambios" : "Crear Responsable"}
-              </button>
-            </div>
-          </form>
-        </div>
+    <div className="p-6 space-y-6">
+      {/* Filtros */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Buscar por nombre, email o área..."
+          className="px-3 py-2 border rounded-lg w-full"
+        />
+        <select value={filterRol} onChange={(e) => setFilterRol(e.target.value)} className="px-3 py-2 border rounded-lg w-full">
+          <option value="">Todos los roles</option>
+          <option value="DBA">DBA</option>
+          <option value="INF">INF</option>
+          <option value="WS">WS</option>
+          <option value="APL">APL</option>
+        </select>
+        <select value={filterEstado} onChange={(e) => setFilterEstado(e.target.value)} className="px-3 py-2 border rounded-lg w-full">
+          <option value="">Todos los estados</option>
+          <option value="Activo">Activo</option>
+          <option value="Inactivo">Inactivo</option>
+        </select>
+        <button
+          onClick={() => {
+            setSelectedResponsable(null);
+            setIsEditing(false);
+            setIsModalOpen(true);
+          }}
+          className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors"
+        >
+          Nuevo Responsable
+        </button>
       </div>
+
+      {/* Estadísticas */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+        {Object.entries(estadisticas).map(([key, value]) => (
+          <div key={key} className="bg-white p-4 rounded-lg shadow-md text-center">
+            <div className="text-2xl font-bold text-blue-700">{value}</div>
+            <div className="text-sm text-gray-600 capitalize">{key}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Lista */}
+      <div className="space-y-4">
+        {filteredResponsables.map((r) => (
+          <div key={r.id} className="bg-white p-6 rounded-lg shadow-md">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {r.nombre} {r.apellido}
+                </h3>
+                <p className="text-gray-600">{r.email}</p>
+                <div className="flex items-center space-x-4 mt-1">
+                  <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                    {r.rol}
+                  </span>
+                  <span className={`px-2 py-1 text-xs rounded-full ${r.estado === "Activo" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                    {r.estado}
+                  </span>
+                </div>
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handleEditarResponsable(r)}
+                  className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleEliminarResponsable(r.id)}
+                  className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Asignaciones</h4>
+                <div className="text-sm space-y-1">
+                  <div><strong>Servidores:</strong> {r.servidoresAsignados}</div>
+                                    <div><strong>Aplicaciones:</strong> {r.aplicacionesAsignadas}</div>
+                  {r.observaciones && (
+                    <div><strong>Observaciones:</strong> {r.observaciones}</div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Información personal</h4>
+                <div className="text-sm space-y-1">
+                  <div><strong>Sexo:</strong> {r.sexo}</div>
+                  <div><strong>Tipo de sangre:</strong> {r.tipoSangre}</div>
+                  <div><strong>Fecha de ingreso:</strong> {r.fechaIngreso}</div>
+                  <div><strong>Fecha de creación:</strong> {r.fechaCreacion}</div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Detalles técnicos</h4>
+                <div className="text-sm space-y-1">
+                  <div><strong>Usuario:</strong> {r.usuario}</div>
+                  <div><strong>Perfil:</strong> {r.perfil}</div>
+                  <div><strong>Rol:</strong> {r.rol}</div>
+                  {r.descripcion && (
+                    <div><strong>Descripción:</strong> {r.descripcion}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Si no hay resultados */}
+      {filteredResponsables.length === 0 && (
+        <div className="bg-white p-8 rounded-lg shadow-md text-center text-gray-500">
+          <div className="text-lg mb-2">No se encontraron responsables</div>
+          <p className="text-gray-400">Prueba con otros filtros o agrega uno nuevo</p>
+        </div>
+      )}
+
+      {/* Modal de formulario */}
+      <FormularioResponsable
+        responsable={selectedResponsable}
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onSuccess={handleSuccess}
+        isEditing={isEditing}
+      />
     </div>
   );
 };
 
-// 🧩 Componentes auxiliares
-
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div className="bg-gray-50 p-4 rounded-lg">
-    <h3 className="text-lg font-semibold mb-4">{title}</h3>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{children}</div>
-  </div>
-);
-
-const Input = (
-  label: string,
-  name: string,
-  value: string,
-  onChange: React.ChangeEventHandler<HTMLInputElement>,
-  required: boolean = false,
-  type: string = "text"
-) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
-    <input
-      type={type}
-      name={name}
-      value={value}
-      onChange={onChange}
-      required={required}
-      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
-  </div>
-);
-
-const Select = (
-  label: string,
-  name: string,
-  value: string,
-  onChange: React.ChangeEventHandler<HTMLSelectElement>,
-  options: string[]
-) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
-    <select
-      name={name}
-      value={value}
-      onChange={onChange}
-      required
-      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      {options.map((opt, index) => (
-        <option key={index} value={opt}>
-          {opt}
-        </option>
-      ))}
-    </select>
-  </div>
-);
-
-const SelectCodigo = ({
-  label,
-  name,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  name: string;
-  value: number;
-  onChange: React.ChangeEventHandler<HTMLSelectElement>;
-  options: { codigo: number; nombre: string }[];
-}) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
-    <select
-      name={name}
-      value={value}
-      onChange={onChange}
-      required
-      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      {options.map((opt) => (
-        <option key={opt.codigo} value={opt.codigo}>
-          {opt.nombre}
-        </option>
-      ))}
-    </select>
-  </div>
-);
-
-const TextArea = ({
-  label,
-  name,
-  value,
-  onChange,
-}: {
-  label: string;
-  name: string;
-  value: string;
-  onChange: React.ChangeEventHandler<HTMLTextAreaElement>;
-}) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
-    <textarea
-      name={name}
-      value={value}
-      onChange={onChange}
-      rows={4}
-      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      placeholder={`Escribe ${label.toLowerCase()}...`}
-    />
-  </div>
-);
-
-export default FormularioResponsable;
+export default Responsables;
