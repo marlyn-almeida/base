@@ -1,113 +1,174 @@
 <?php
-// Creado o modificado por Marlyn Almeida – 06/08/2025
+// Creado o modificado por Marlyn Almeida – 14/08/2025
 
 include '../seguridades/incConnect.php';
 include_once '../seguridades/cors.php';
 
+// 🔐 CORS
 $allowedOrigin = 'http://localhost:3000';
-if ($_SERVER['HTTP_ORIGIN'] === $allowedOrigin) {
+if (isset($_SERVER['HTTP_ORIGIN']) && $_SERVER['HTTP_ORIGIN'] === $allowedOrigin) {
     header("Access-Control-Allow-Origin: $allowedOrigin");
     header("Access-Control-Allow-Headers: Content-Type");
     header("Access-Control-Allow-Methods: POST, GET");
 }
 
+// 📦 Tipo de contenido
 header("Content-Type: application/json");
 
+// 🧩 Leer datos JSON
 $data = json_decode(file_get_contents("php://input"), true);
 $accion = $data["accion"] ?? null;
 
+if (!is_array($data)) {
+    http_response_code(400);
+    echo json_encode(["error" => "Datos JSON inválidos"]);
+    exit;
+}
+
 if (!$pdo) {
+    http_response_code(500);
     echo json_encode(["error" => "No hay conexión a la base de datos"]);
     exit;
 }
 
+// 🧪 Validación de campos obligatorios
+function validarCampos($campos, $data) {
+    foreach ($campos as $campo) {
+        if (!isset($data[$campo])) {
+            http_response_code(400);
+            echo json_encode(["error" => "Falta el campo obligatorio: $campo"]);
+            exit;
+        }
+    }
+}
+
+// 🧩 Insertar empleado
+function insertarEmpleado($data, $pdo) {
+    validarCampos([
+        "empnombres", "empapellidopaterno", "empapellidomaterno", "empcedula",
+        "empemail", "empcelular", "empsangre", "empsexo", "fechainicio",
+        "empusuario", "empactivo", "empdescripcion", "empobservaciones",
+        "arecodigo", "rolcodigo", "percodigo"
+    ], $data);
+
+    try {
+        $stmt = $pdo->prepare("EXEC insert_employee ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?");
+        $stmt->execute([
+            $data["empnombres"],
+            $data["empapellidopaterno"],
+            $data["empapellidomaterno"],
+            $data["empcedula"],
+            $data["empemail"],
+            $data["empcelular"],
+            $data["empsangre"],
+            $data["empsexo"],
+            $data["fechainicio"],
+            $data["empusuario"],
+            $data["empactivo"],
+            $data["empdescripcion"],
+            $data["empobservaciones"],
+            $data["arecodigo"],
+            $data["rolcodigo"],
+            $data["percodigo"]
+        ]);
+        echo json_encode(["status" => "insertado"]);
+    } catch (Exception $e) {
+        error_log("Error en insert: " . $e->getMessage());
+        http_response_code(500);
+        echo json_encode(["error" => "Error al insertar empleado"]);
+    }
+}
+
+// ✏️ Actualizar empleado
+function actualizarEmpleado($data, $pdo) {
+    validarCampos([
+        "empcodigo", "empnombres", "empapellidopaterno", "empapellidomaterno", "empcedula",
+        "empemail", "empcelular", "empsangre", "empsexo", "fechainicio",
+        "empusuario", "empactivo", "empdescripcion", "empobservaciones",
+        "arecodigo", "rolcodigo", "percodigo"
+    ], $data);
+
+    try {
+        $stmt = $pdo->prepare("EXEC update_employee ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?");
+        $stmt->execute([
+            $data["empcodigo"],
+            $data["empnombres"],
+            $data["empapellidopaterno"],
+            $data["empapellidomaterno"],
+            $data["empcedula"],
+            $data["empemail"],
+            $data["empcelular"],
+            $data["empsangre"],
+            $data["empsexo"],
+            $data["fechainicio"],
+            $data["empusuario"],
+            $data["empactivo"],
+            $data["empdescripcion"],
+            $data["empobservaciones"],
+            $data["arecodigo"],
+            $data["rolcodigo"],
+            $data["percodigo"]
+        ]);
+        echo json_encode(["status" => "actualizado"]);
+    } catch (Exception $e) {
+        error_log("Error en update: " . $e->getMessage());
+        http_response_code(500);
+        echo json_encode(["error" => "Error al actualizar empleado"]);
+    }
+}
+
+// 🗑️ Eliminar empleado
+function eliminarEmpleado($data, $pdo) {
+    if (!isset($data["empcodigo"])) {
+        http_response_code(400);
+        echo json_encode(["error" => "Falta el campo empcodigo"]);
+        exit;
+    }
+
+    try {
+        $stmt = $pdo->prepare("EXEC delete_employee ?");
+        $stmt->execute([$data["empcodigo"]]);
+        echo json_encode(["status" => "deshabilitado"]);
+    } catch (Exception $e) {
+        error_log("Error en delete: " . $e->getMessage());
+        http_response_code(500);
+        echo json_encode(["error" => "Error al eliminar empleado"]);
+    }
+}
+
+// 📥 Leer empleados
+function leerEmpleados($pdo) {
+    try {
+        $stmt = $pdo->query("EXEC get_employees");
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // ✅ Asegurar que empactivo se interprete correctamente
+        foreach ($result as &$row) {
+            $row["empactivo"] = (int)$row["empactivo"] === 1 ? 1 : 0;
+        }
+
+        echo json_encode($result);
+    } catch (Exception $e) {
+        error_log("Error en read: " . $e->getMessage());
+        http_response_code(500);
+        echo json_encode(["error" => "Error al leer empleados"]);
+    }
+}
+
+// 🚦 Controlador principal
 switch ($accion) {
-
     case "insert":
-        try {
-            $stmt = $pdo->prepare("EXEC insert_employee ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?");
-            $stmt->execute([
-                $data["empnombres"],
-                $data["empapellidopaterno"],
-                $data["empapellidomaterno"],
-                $data["empcedula"],
-                $data["empemail"],
-                $data["empcelular"],
-                $data["emptiposangre"],
-                $data["empsexo"],
-                $data["fechainicio"],
-                $data["empfechacreacion"],
-                $data["empusuario"],
-                $data["empnivel"],
-                $data["empactivo"],
-                $data["empdescripcion"],
-                $data["empobservaciones"],
-                $data["arecodigo"],
-                $data["rolcodigo"],
-                //$data["percodigo"],
-                $data["empprofile"]
-            ]);
-            echo json_encode(["status" => "insertado"]);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["error" => $e->getMessage()]);
-        }
+        insertarEmpleado($data, $pdo);
         break;
-
     case "update":
-        try {
-            $stmt = $pdo->prepare("EXEC update_employee ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?");
-            $stmt->execute([
-                $data["empcodigo"],
-                $data["empnombres"],
-                $data["empapellidopaterno"],
-                $data["empapellidomaterno"],
-                $data["empcedula"],
-                $data["empemail"],
-                $data["empcelular"],
-                $data["emptiposangre"],
-                $data["empsexo"],
-                $data["fechainicio"],
-                $data["empfechacreacion"],
-                $data["empusuario"],
-                $data["empnivel"],
-                $data["empactivo"],
-                $data["empdescripcion"],
-                $data["empobservaciones"],
-                $data["arecodigo"],
-                $data["rolcodigo"],
-                $data["percodigo"],
-                $data["empprofile"]
-            ]);
-            echo json_encode(["status" => "actualizado"]);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["error" => $e->getMessage()]);
-        }
+        actualizarEmpleado($data, $pdo);
         break;
-
     case "delete":
-        try {
-            $stmt = $pdo->prepare("EXEC delete_employee ?");
-            $stmt->execute([$data["empcodigo"]]);
-            echo json_encode(["status" => "deshabilitado"]);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["error" => $e->getMessage()]);
-        }
+        eliminarEmpleado($data, $pdo);
         break;
-
     case "read":
-        try {
-            $stmt = $pdo->query("EXEC get_employees");
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            echo json_encode($result);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["error" => $e->getMessage()]);
-        }
+        leerEmpleados($pdo);
         break;
-
     default:
         http_response_code(400);
         echo json_encode(["error" => "Acción no válida"]);
