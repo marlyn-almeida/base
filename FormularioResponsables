@@ -1,4 +1,4 @@
-// Creado por Marlyn Almeida – 06/08/2025
+// Creado por Marlyn Almeida – 14/08/2025
 import React, { useState, useEffect } from "react";
 import {
   Responsable,
@@ -25,6 +25,36 @@ const FormularioResponsable: React.FC<Props> = ({
   const [error, setError] = useState<string>("");
   const [mensaje, setMensaje] = useState<string>("");
 
+  const roles = [
+    { codigo: 1, nombre: "DBA" },
+    { codigo: 2, nombre: "INF" },
+    { codigo: 3, nombre: "WS" },
+    { codigo: 4, nombre: "APL" },
+  ];
+
+  const perfiles = [
+    { codigo: 101, nombre: "Administrador" },
+    { codigo: 102, nombre: "Auditor" },
+    { codigo: 103, nombre: "Operador" },
+  ];
+
+  const areas = [
+    { codigo: 10, nombre: "Aplicaciones y Arquitectura" },
+    { codigo: 20, nombre: "Centro de datos" },
+    { codigo: 30, nombre: "Control de operaciones" },
+    { codigo: 40, nombre: "Administrativas" },
+  ];
+
+  const convertirFecha = (fecha: string | undefined): string => {
+    if (!fecha) return new Date().toISOString().split("T")[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return fecha;
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(fecha)) {
+      const [dia, mes, año] = fecha.split("/");
+      return `${año}-${mes}-${dia}`;
+    }
+    return new Date().toISOString().split("T")[0];
+  };
+
   useEffect(() => {
     const defaultData: Responsable = {
       id: responsable?.id ?? `resp-${Date.now()}`,
@@ -35,7 +65,11 @@ const FormularioResponsable: React.FC<Props> = ({
       email: "",
       telefono: "",
       area: "",
-      tipo: "DBA",
+      arecodigo: areas[0].codigo,
+      rol: "",
+      rolcodigo: roles[0].codigo,
+      perfil: "",
+      percodigo: perfiles[0].codigo,
       estado: "Activo",
       fechaIngreso: new Date().toISOString().split("T")[0],
       fechaCreacion: "",
@@ -43,17 +77,28 @@ const FormularioResponsable: React.FC<Props> = ({
       servidoresAsignados: 0,
       aplicacionesAsignadas: 0,
       sexo: "Masculino",
-      tipoSangre: "A+",
-      nivel: "",
+      tipoSangre: "O+",
       descripcion: "",
       observaciones: "",
-      rolcodigo: "",
-      percodigo: "",
-      empprofile: "",
-      perfil: "",
     };
 
-    setFormData(responsable ? { ...defaultData, ...responsable } : defaultData);
+    const normalizarResponsable = (r: Responsable): Responsable => ({
+      ...defaultData,
+      ...r,
+      telefono: r.telefono ?? "",
+      descripcion: r.descripcion ?? "",
+      observaciones: r.observaciones ?? "",
+      tipoSangre: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].includes(r.tipoSangre ?? "") ? r.tipoSangre! : "O+",
+      sexo: ["Masculino", "Femenino", "Otro"].includes(r.sexo ?? "") ? r.sexo! : "Masculino",
+      estado: ["Activo", "Inactivo"].includes(r.estado ?? "") ? r.estado! : "Activo",
+      fechaIngreso: convertirFecha(r.fechaIngreso),
+      arecodigo: areas.some(a => a.codigo === r.arecodigo) ? r.arecodigo : areas[0].codigo,
+      rolcodigo: roles.some(rp => rp.codigo === r.rolcodigo) ? r.rolcodigo : roles[0].codigo,
+      percodigo: perfiles.some(p => p.codigo === r.percodigo) ? r.percodigo : perfiles[0].codigo,
+    });
+
+    const datos = responsable ? normalizarResponsable(responsable) : defaultData;
+    setFormData(datos);
     setError("");
     setMensaje("");
   }, [responsable]);
@@ -66,21 +111,7 @@ const FormularioResponsable: React.FC<Props> = ({
 
     let castedValue: any = value;
 
-    if (name === "tipo" && ["DBA", "INF", "WS", "APL"].includes(value)) {
-      castedValue = value as Responsable["tipo"];
-    } else if (name === "estado" && ["Activo", "Inactivo"].includes(value)) {
-      castedValue = value as Responsable["estado"];
-    } else if (name === "sexo" && ["Masculino", "Femenino", "Otro"].includes(value)) {
-      castedValue = value as Responsable["sexo"];
-    } else if (
-      name === "tipoSangre" &&
-      ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].includes(value)
-    ) {
-      castedValue = value as Responsable["tipoSangre"];
-    } else if (
-      name === "servidoresAsignados" ||
-      name === "aplicacionesAsignadas"
-    ) {
+    if (["servidoresAsignados", "aplicacionesAsignadas", "arecodigo", "rolcodigo", "percodigo"].includes(name)) {
       castedValue = parseInt(value) || 0;
     }
 
@@ -93,7 +124,7 @@ const FormularioResponsable: React.FC<Props> = ({
 
     const requiredFields = [
       "nombre", "apellido", "apellidomaterno", "cedula", "email",
-      "tipo", "sexo", "estado", "fechaIngreso", "rolcodigo", "percodigo", "empprofile"
+      "sexo", "estado", "fechaIngreso", "rolcodigo", "percodigo", "arecodigo"
     ];
     const missing = requiredFields.filter((field) => !formData[field as keyof Responsable]);
     if (missing.length > 0) {
@@ -142,7 +173,6 @@ const FormularioResponsable: React.FC<Props> = ({
           {mensaje && <div className="mb-4 text-green-600 font-medium">{mensaje}</div>}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Información Personal */}
             <Section title="Información Personal">
               {Input("Nombre *", "nombre", formData.nombre, handleChange, true)}
               {Input("Apellido Paterno *", "apellido", formData.apellido, handleChange, true)}
@@ -150,69 +180,28 @@ const FormularioResponsable: React.FC<Props> = ({
               {Input("Cédula *", "cedula", formData.cedula, handleChange, true)}
               {Input("Email *", "email", formData.email, handleChange, true, "email")}
               {Input("Teléfono", "telefono", formData.telefono, handleChange)}
-              {Select("Sexo *", "sexo", formData.sexo, handleChange, [
-                "Seleccione...",
-                "Masculino",
-                "Femenino",
-                "Otro",
-              ])}
-              {Select("Tipo de Sangre", "tipoSangre", formData.tipoSangre ?? "", handleChange, [
-                "Seleccione...",
-                "A+",
-                "A-",
-                "B+",
-                "B-",
-                "AB+",
-                "AB-",
-                "O+",
-                "O-",
-              ])}
+              {Select("Sexo *", "sexo", formData.sexo, handleChange, ["Masculino", "Femenino", "Otro"])}
+              {Select("Tipo de Sangre", "tipoSangre", formData.tipoSangre ?? "", handleChange, ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"])}
             </Section>
 
-            {/* Información Laboral */}
             <Section title="Información Laboral">
-              {Select("Tipo de Responsable *", "tipo", formData.tipo, handleChange, [
-                "Seleccione...",
-                "DBA",
-                "INF",
-                "WS",
-                "APL",
-              ])}
-              {Input("Área *", "area", formData.area, handleChange)}
-              {Select("Estado *", "estado", formData.estado, handleChange, [
-                "Seleccione...",
-                "Activo",
-                "Inactivo",
-              ])}
+              <SelectCodigo label="Área *" name="arecodigo" value={formData.arecodigo} onChange={handleChange} options={areas} />
+              <SelectCodigo label="Rol *" name="rolcodigo" value={formData.rolcodigo} onChange={handleChange} options={roles} />
+              <SelectCodigo label="Perfil *" name="percodigo" value={formData.percodigo} onChange={handleChange} options={perfiles} />
+              {Select("Estado *", "estado", formData.estado, handleChange, ["Activo", "Inactivo"])}
               {Input("Fecha de Ingreso *", "fechaIngreso", formData.fechaIngreso, handleChange, true, "date")}
-              {Input("Nivel", "nivel", formData.nivel ?? "", handleChange)}
-              {Select("Rol *", "rolcodigo", formData.rolcodigo, handleChange, [
-                "Seleccione...",
-                "ROL001",
-                "ROL002",
-                "ROL003",
-              ])}
-              {Select("Perfil *", "empprofile", formData.empprofile, handleChange, [
-                "Seleccione...",
-                "Administrador",
-                "Auditor",
-                "Operador",
-              ])}
             </Section>
 
-            {/* Asignaciones */}
             <Section title="Asignaciones">
               {Input("Servidores Asignados", "servidoresAsignados", String(formData.servidoresAsignados), handleChange, false, "number")}
               {Input("Aplicaciones Asignadas", "aplicacionesAsignadas", String(formData.aplicacionesAsignadas), handleChange, false, "number")}
             </Section>
 
-            {/* Descripción y Observaciones */}
             <Section title="Descripción">
               <TextArea label="Descripción" name="descripcion" value={formData.descripcion} onChange={handleChange} />
               <TextArea label="Observaciones" name="observaciones" value={formData.observaciones} onChange={handleChange} />
             </Section>
 
-            {/* Botones */}
             <div className="flex justify-end space-x-4 pt-4 border-t">
               <button
                 type="button"
@@ -225,7 +214,7 @@ const FormularioResponsable: React.FC<Props> = ({
                 type="submit"
                 className="px-6 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
               >
-                                {isEditing ? "Guardar Cambios" : "Crear Responsable"}
+                {isEditing ? "Guardar Cambios" : "Crear Responsable"}
               </button>
             </div>
           </form>
@@ -235,7 +224,7 @@ const FormularioResponsable: React.FC<Props> = ({
   );
 };
 
-//  Componentes auxiliares
+// 🧩 Componentes auxiliares
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="bg-gray-50 p-4 rounded-lg">
@@ -282,8 +271,39 @@ const Select = (
       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
     >
       {options.map((opt, index) => (
-        <option key={index} value={opt === "Seleccione..." ? "" : opt}>
+        <option key={index} value={opt}>
           {opt}
+        </option>
+      ))}
+    </select>
+  </div>
+);
+
+const SelectCodigo = ({
+  label,
+  name,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  name: string;
+  value: number;
+  onChange: React.ChangeEventHandler<HTMLSelectElement>;
+  options: { codigo: number; nombre: string }[];
+}) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+    <select
+      name={name}
+      value={value}
+      onChange={onChange}
+      required
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      {options.map((opt) => (
+        <option key={opt.codigo} value={opt.codigo}>
+          {opt.nombre}
         </option>
       ))}
     </select>
