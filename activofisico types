@@ -1,0 +1,62 @@
+// Modificado por Marlyn Almeida el 15/08/2025
+
+export interface ActivoFisicoForm {
+  id: number;
+  naturaleza: string;
+  nombre: string;
+  administrador: string;
+  descripcion: string;
+  etiqueta: string;
+  codigoActivo: string;
+  centroCosto: string;
+  fabricante: string;
+  modelo: string;
+  numeroSerie: string;
+  numeroContrato: string;
+  fechaAdquisicion: string;
+  fechaVencimientoGarantia: string;
+  zonaId: number;
+  precioCompra: number;
+  ubicacion: string;
+  estado: string;
+}
+
+// Mapea una sola fila del backend
+export function mapToActivoFisico(raw: any): ActivoFisicoForm {
+  return {
+    id: raw.id_activo_fisico,
+    naturaleza: raw.Naturaleza,
+    nombre: raw.Activo,
+    administrador: raw.Gestion_TIC || '',
+    descripcion: raw.Descripcion_Activo,
+    etiqueta: raw.Etiqueta_Activo_Fijo,
+    codigoActivo: raw.Codigo_activo_Fijo_EBS,
+    centroCosto: raw.Centro_Costo,
+    fabricante: raw.Fabricante,
+    modelo: raw.Modelo,
+    numeroSerie: raw.Serie,
+    numeroContrato: raw.Num_Contrato,
+    fechaAdquisicion: raw.Fecha_Recepcion,
+    fechaVencimientoGarantia: raw.Caducidad_Garantia,
+    zonaId: raw.ID_Zona,
+    precioCompra: raw.Precio_Compra,
+    ubicacion: raw.Ubicacion_Desc,
+    estado: raw.Estado
+  };
+}
+
+// Agrupa múltiples filas por activo físico
+export function groupActivosFisicos(rows: any[]): ActivoFisicoForm[] {
+  const activosMap = new Map<number, ActivoFisicoForm>();
+
+  for (const row of rows) {
+    const id = row.id_activo_fisico;
+
+    if (!activosMap.has(id)) {
+      const activo = mapToActivoFisico(row);
+      activosMap.set(id, activo);
+    }
+  }
+
+  return Array.from(activosMap.values());
+}
