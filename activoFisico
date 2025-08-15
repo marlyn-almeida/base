@@ -1,10 +1,9 @@
 <?php
-// Creado por Marlyn Almeida - 07/08/2025
+// Creado por Marlyn Almeida - 15/08/2025
 
 include '../seguridades/incConnect.php';
 include_once '../seguridades/cors.php';
 
-// Habilita CORS solo para desarrollo
 $allowedOrigin = 'http://localhost:3000';
 if ($_SERVER['HTTP_ORIGIN'] === $allowedOrigin) {
     header("Access-Control-Allow-Origin: $allowedOrigin");
@@ -12,25 +11,21 @@ if ($_SERVER['HTTP_ORIGIN'] === $allowedOrigin) {
     header("Access-Control-Allow-Methods: POST, GET");
 }
 
-// Fuerza salida como JSON
 header("Content-Type: application/json");
 
-// Captura el JSON enviado desde React
 $data = json_decode(file_get_contents("php://input"), true);
 $accion = isset($data["accion"]) ? $data["accion"] : null;
 
-// Valida conexión
 if (!$pdo) {
     echo json_encode(["error" => "No hay conexión a la base de datos"]);
     exit;
 }
 
-switch ($accion) {
+try {
+    switch ($accion) {
 
-    case "create":
-        try {
-            // Insertar activo físico
-            $stmt = $pdo->prepare("EXEC insertActivo ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?");
+        case "create":
+            $stmt = $pdo->prepare("EXEC add_activo ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?");
             $stmt->execute([
                 $data["Naturaleza"],
                 $data["Activo"],
@@ -51,52 +46,28 @@ switch ($accion) {
                 $data["Estado"]
             ]);
 
-            // Obtener el ID recién insertado
             $idResult = $stmt->fetch(PDO::FETCH_ASSOC);
-            $idActivo = $idResult["ID_Activo_Fisico"] ?? null;
-
-            // Asignar empleado si se envió EmpCodigo
-            if ($idActivo && isset($data["EmpCodigo"])) {
-                $stmtAsignar = $pdo->prepare("EXEC insertEmpleadoActivo ?,?");
-                $stmtAsignar->execute([$idActivo, $data["EmpCodigo"]]);
-            }
-
             echo json_encode([
                 "status" => "insertado",
-                "id_activo_fisico" => $idActivo
+                "id_activo_fisico" => $idResult["Nuevo_ID"] ?? null
             ]);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["error" => $e->getMessage()]);
-        }
-        break;
+            break;
 
-    case "read":
-        try {
-            $stmt = $pdo->query("EXEC getAllActivos");
+        case "read":
+            $stmt = $pdo->query("EXEC get_activos");
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             echo json_encode($result);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["error" => $e->getMessage()]);
-        }
-        break;
+            break;
 
-    case "readById":
-        try {
-            $stmt = $pdo->prepare("EXEC getActivoById ?");
+        case "readById":
+            $stmt = $pdo->prepare("EXEC get_activo_by_id ?");
             $stmt->execute([$data["id_activo_fisico"]]);
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
             echo json_encode($result);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["error" => $e->getMessage()]);
-        }
-        break;
+            break;
 
-    case "update":
-        try {
-            $stmt = $pdo->prepare("EXEC updateActivo ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?");
+        case "update":
+            $stmt = $pdo->prepare("EXEC edit_activo ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?");
             $stmt->execute([
                 $data["id_activo_fisico"],
                 $data["Naturaleza"],
@@ -118,48 +89,22 @@ switch ($accion) {
                 $data["Estado"]
             ]);
             echo json_encode(["status" => "actualizado"]);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["error" => $e->getMessage()]);
-        }
-        break;
+            break;
 
-    case "disable":
-        try {
-            $stmt = $pdo->prepare("EXEC disableActivo ?");
+        case "disable":
+            $stmt = $pdo->prepare("EXEC disable_activo ?");
             $stmt->execute([$data["id_activo_fisico"]]);
-            echo json_encode(["status" => "deshabilitado"]);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["error" => $e->getMessage()]);
-        }
-        break;
+            $msg = $stmt->fetch(PDO::FETCH_ASSOC);
+            echo json_encode(["status" => "deshabilitado", "mensaje" => $msg["Mensaje"] ?? null]);
+            break;
 
-    case "total":
-        try {
-            $stmt = $pdo->query("SELECT dbo.getTotalActivos() AS total");
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            echo json_encode($result);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["error" => $e->getMessage()]);
-        }
-        break;
-
-    case "operativos":
-        try {
-            $stmt = $pdo->query("SELECT dbo.getTotalOperativos() AS operativos");
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            echo json_encode($result);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["error" => $e->getMessage()]);
-        }
-        break;
-
-    default:
-        http_response_code(400);
-        echo json_encode(["error" => "Acción no válida"]);
-        break;
+        default:
+            http_response_code(400);
+            echo json_encode(["error" => "Acción no válida"]);
+            break;
+    }
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(["error" => $e->getMessage()]);
 }
 ?>
