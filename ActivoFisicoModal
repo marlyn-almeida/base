@@ -1,0 +1,201 @@
+// Modificado por Marlyn Almeida el 18/08/2025
+import React, { useState, useEffect } from 'react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { ActivoFisico } from '../../types/ActivoFisico';
+
+interface Props {
+  activo: ActivoFisico;
+  modo: 'ver' | 'editar';
+  onClose: () => void;
+  onSave: (activo: ActivoFisico) => void;
+}
+
+const ActivoFisicoModal: React.FC<Props> = ({ activo, modo, onClose, onSave }) => {
+  const [formData, setFormData] = useState<ActivoFisico>(activo);
+  const readonly = modo === 'ver';
+
+  useEffect(() => {
+    setFormData(activo);
+  }, [activo]);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'precioCompra' || name === 'zonaId' ? Number(value) : value
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">
+            {readonly ? 'Detalles del Activo Físico' : 'Editar Activo Físico'}
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <XMarkIcon className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Formulario */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Sección 1: Identificación */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { label: 'Naturaleza', name: 'naturaleza' },
+              { label: 'Etiqueta', name: 'etiqueta' },
+              { label: 'Código Activo', name: 'codigoActivo' },
+              { label: 'Centro de Costo', name: 'centroCosto' },
+              { label: 'Administrador', name: 'administrador' },
+              {
+                label: 'Estado',
+                name: 'estado',
+                type: 'select',
+                options: ['Operativo', 'Inoperativo', 'En mantenimiento']
+              }
+            ].map(({ label, name, type, options }) => (
+              <div key={name}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{label} *</label>
+                {readonly ? (
+                  <div className="px-3 py-2 bg-gray-100 border border-gray-200 rounded-md text-gray-900">
+                    {formData[name as keyof ActivoFisico]}
+                  </div>
+                ) : type === 'select' ? (
+                  <select
+                    name={name}
+                    value={formData[name as keyof ActivoFisico] as string}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="">Seleccionar...</option>
+                    {options!.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    name={name}
+                    value={formData[name as keyof ActivoFisico] as string}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Sección 2: Detalles técnicos */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { label: 'Nombre del Activo', name: 'nombre' },
+              { label: 'Fabricante', name: 'fabricante' },
+              { label: 'Modelo', name: 'modelo' },
+              { label: 'Número de Serie', name: 'numeroSerie' },
+              { label: 'Número de Contrato', name: 'numeroContrato' },
+              { label: 'Zona ID', name: 'zonaId', type: 'number' }
+            ].map(({ label, name, type }) => (
+              <div key={name}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{label} *</label>
+                {readonly ? (
+                  <div className="px-3 py-2 bg-gray-100 border border-gray-200 rounded-md text-gray-900">
+                    {formData[name as keyof ActivoFisico]}
+                  </div>
+                ) : (
+                  <input
+                    type={type || 'text'}
+                    name={name}
+                    value={formData[name as keyof ActivoFisico]}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Sección 3: Fechas y ubicación */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { label: 'Fecha de Adquisición', name: 'fechaAdquisicion', type: 'date' },
+              { label: 'Fecha Vencimiento Garantía', name: 'fechaVencimientoGarantia', type: 'date' },
+              { label: 'Ubicación', name: 'ubicacion' },
+              { label: 'Precio de Compra', name: 'precioCompra', type: 'number' }
+            ].map(({ label, name, type }) => (
+              <div key={name}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+                {readonly ? (
+                  <div className="px-3 py-2 bg-gray-100 border border-gray-200 rounded-md text-gray-900">
+                    {type === 'date'
+                      ? new Date(formData[name as keyof ActivoFisico] as string).toLocaleDateString('es-ES')
+                      : formData[name as keyof ActivoFisico]}
+                  </div>
+                ) : (
+                  <input
+                    type={type || 'text'}
+                    name={name}
+                    value={formData[name as keyof ActivoFisico]}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Descripción */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+            {readonly ? (
+              <div className="px-3 py-2 bg-gray-100 border border-gray-200 rounded-md text-gray-900">
+                {formData.descripcion || 'Sin descripción'}
+              </div>
+            ) : (
+              <textarea
+                name="descripcion"
+                value={formData.descripcion}
+                onChange={handleInputChange}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                placeholder="Descripción del activo y su propósito"
+              />
+            )}
+          </div>
+
+          {/* Botones */}
+          <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              {readonly ? 'Cerrar' : 'Cancelar'}
+            </button>
+            {!readonly && (
+              <button
+                type="submit"
+                className="px-6 py-2 bg-petroecuador-light text-white rounded-lg hover:bg-petroecuador-dark transition-colors"
+              >
+                Guardar Cambios
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default ActivoFisicoModal;
