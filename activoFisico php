@@ -25,7 +25,16 @@ try {
     switch ($accion) {
 
         case "create":
-            $stmt = $pdo->prepare("EXEC add_activo ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?");
+            // Validar existencia de zona
+            $zonaStmt = $pdo->prepare("SELECT 1 FROM ZONA_A WHERE ID_Zona = ?");
+            $zonaStmt->execute([$data["ID_Zona"]]);
+            if (!$zonaStmt->fetch()) {
+                echo json_encode(["error" => "La zona especificada no existe"]);
+                exit;
+            }
+
+            // Ejecutar creación
+            $stmt = $pdo->prepare("EXEC create_activo ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?");
             $stmt->execute([
                 $data["Naturaleza"],
                 $data["Activo"],
@@ -49,7 +58,7 @@ try {
             $idResult = $stmt->fetch(PDO::FETCH_ASSOC);
             echo json_encode([
                 "status" => "insertado",
-                "id_activo_fisico" => $idResult["Nuevo_ID"] ?? null
+                "id_activo_fisico" => $idResult["id_activo_fisico"] ?? null
             ]);
             break;
 
