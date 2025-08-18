@@ -1,0 +1,81 @@
+import React from 'react';
+import { ActivoFisicoForm } from '../../types/ActivoFisico';
+
+interface Props {
+  activos: ActivoFisicoForm[];
+}
+
+const EstadisticasActivos: React.FC<Props> = ({ activos }) => {
+  const hoy = new Date();
+
+  const garantiaVencida = (fecha: string | null | undefined) => {
+    if (!fecha) return false;
+    return new Date(fecha) < hoy;
+  };
+
+  const garantiaPorVencer = (fecha: string | null | undefined) => {
+    if (!fecha) return false;
+    const vencimiento = new Date(fecha);
+    const diasRestantes = Math.floor((vencimiento.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+    return diasRestantes <= 90 && diasRestantes > 0;
+  };
+
+  const totalActivos = activos.length;
+  const operativos = activos.filter(a => a.estado === 'Operativo').length;
+  const vencidos = activos.filter(a => garantiaVencida(a.fechaVencimientoGarantia)).length;
+  const porVencer = activos.filter(a => garantiaPorVencer(a.fechaVencimientoGarantia) && !garantiaVencida(a.fechaVencimientoGarantia)).length;
+
+  const estadisticas = [
+    {
+      titulo: 'Total Activos',
+      valor: totalActivos,
+      icono: '🖥️',
+      color: 'bg-blue-100 text-blue-800',
+      descripcion: 'Servidores físicos registrados'
+    },
+    {
+      titulo: 'Operativos',
+      valor: operativos,
+      icono: '✅',
+      color: 'bg-green-100 text-green-800',
+      descripcion: 'En funcionamiento normal'
+    },
+    {
+      titulo: 'Garantía vencida',
+      valor: vencidos,
+      icono: '⚠️',
+      color: 'bg-red-100 text-red-800',
+      descripcion: 'Activos con garantía expirada'
+    },
+    {
+      titulo: 'Garantía por vencer',
+      valor: porVencer,
+      icono: '⏰',
+      color: 'bg-amber-100 text-amber-800',
+      descripcion: 'Activos cuya garantía vence en ≤ 90 días'
+    }
+  ];
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {estadisticas.map((stat, index) => (
+        <div key={index} className="bg-white p-4 rounded-lg shadow-md border border-gray-200">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-2xl">{stat.icono}</span>
+            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${stat.color}`}>
+              {stat.valor}
+            </span>
+          </div>
+          <h3 className="text-sm font-medium text-gray-800 mb-1">
+            {stat.titulo}
+          </h3>
+          <p className="text-xs text-gray-600">
+            {stat.descripcion}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default EstadisticasActivos;
