@@ -1,0 +1,98 @@
+import React from 'react';
+import { EyeIcon, PencilIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline';
+import { ActivoFisicoForm } from '../../types/ActivoFisico';
+
+interface Props {
+  activo: ActivoFisicoForm;
+  onVer: () => void;
+  onEditar: () => void;
+  getEstadoColor: (estado: string) => string;
+}
+
+const ActivoFisicoRow: React.FC<Props> = ({ activo, onVer, onEditar, getEstadoColor }) => {
+  const garantiaVenceSoon = () => {
+    if (!activo.fechaVencimientoGarantia) return false;
+    const fechaVencimiento = new Date(activo.fechaVencimientoGarantia);
+    const hoy = new Date();
+    const diasRestantes = Math.floor((fechaVencimiento.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+    return diasRestantes <= 90 && diasRestantes > 0;
+  };
+
+  const garantiaVencida = () => {
+    if (!activo.fechaVencimientoGarantia) return false;
+    const fechaVencimiento = new Date(activo.fechaVencimientoGarantia);
+    const hoy = new Date();
+    return fechaVencimiento < hoy;
+  };
+
+  return (
+    <tr className="hover:bg-gray-50">
+      {/* Nombre del activo */}
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="flex items-center">
+          <ComputerDesktopIcon className="w-5 h-5 text-gray-400 mr-3" />
+          <div>
+            <div className="text-sm font-medium text-gray-900">{activo.nombre}</div>
+            <div className="text-xs text-gray-500">
+              {activo.codigoActivo} • {activo.numeroSerie}
+            </div>
+          </div>
+        </div>
+      </td>
+
+      {/* Fabricante y Modelo */}
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="text-sm text-gray-900">{activo.fabricante}</div>
+        <div className="text-xs text-gray-500">{activo.modelo}</div>
+      </td>
+
+      {/* Ubicación */}
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="text-sm text-gray-900">{activo.ubicacion}</div>
+      </td>
+
+      {/* Responsable Principal */}
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="text-sm text-gray-900">{activo.administrador}</div>
+        <div className="text-xs text-gray-500">Administrador</div>
+      </td>
+
+      {/* Estado */}
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="space-y-1">
+          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getEstadoColor(activo.estado)}`}>
+            {activo.estado}
+          </span>
+          {garantiaVencida() && (
+            <div className="text-xs text-red-600 font-medium">⚠️ Garantía vencida</div>
+          )}
+          {garantiaVenceSoon() && !garantiaVencida() && (
+            <div className="text-xs text-amber-600 font-medium">⏰ Garantía por vencer</div>
+          )}
+        </div>
+      </td>
+
+      {/* Acciones */}
+      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        <div className="flex space-x-2">
+          <button
+            onClick={onVer}
+            className="text-blue-600 hover:text-blue-900 p-2 rounded-full hover:bg-blue-100 transition-colors"
+            title="Ver detalles completos"
+          >
+            <EyeIcon className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onEditar}
+            className="text-green-600 hover:text-green-900 p-2 rounded-full hover:bg-green-100 transition-colors"
+            title="Editar activo"
+          >
+            <PencilIcon className="w-4 h-4" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+};
+
+export default ActivoFisicoRow;
