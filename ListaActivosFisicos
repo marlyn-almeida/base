@@ -1,0 +1,218 @@
+// Modificado por Marlyn Almeida el 18/08/2025
+import React, { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { PlusIcon, MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import {
+  ActivoFisico,
+  obtenerActivosFisicos
+} from '../../types/ActivoFisico';
+
+import ActivosFisicosTable from '../../components/activos/ActivosFisicosTable';
+import FiltrosActivos from '../../components/activos/FiltrosActivos';
+import EstadisticasActivos from '../../components/activos/EstadisticasActivos';
+import ActivoFisicoModal from '../../components/activos/ActivoFisicoModal';
+
+const ListaActivosFisicos: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activos, setActivos] = useState<ActivoFisico[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterEstado, setFilterEstado] = useState('');
+  const [filterFabricante, setFilterFabricante] = useState('');
+  const [filterZona, setFilterZona] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedActivo, setSelectedActivo] = useState<ActivoFisico | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'ver' | 'editar'>('ver');
+
+  useEffect(() => {
+    const cargarActivos = async () => {
+      const data = await obtenerActivosFisicos();
+      setActivos(data);
+
+      const activoId = searchParams.get('activo');
+      if (activoId) {
+        const activo = data.find(a => a.id === activoId);
+        if (activo) {
+          setSelectedActivo(activo);
+          setModalMode('ver');
+          setModalOpen(true);
+          setSearchParams({});
+        }
+      }
+    };
+
+    cargarActivos();
+  }, [searchParams, setSearchParams]);
+
+  const filteredActivos = activos.filter((activo) => {
+    const matchesSearch =
+      activo.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      activo.numeroSerie.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      activo.codigoActivo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      activo.fabricante.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      activo.modelo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      activo.ubicacion.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesEstado = filterEstado === '' || activo.estado === filterEstado;
+    const matchesFabricante = filterFabricante === '' || activo.fabricante === filterFabricante;
+    const matchesZona = filterZona === '' || activo.ubicacion.includes(filterZona);
+
+    return matchesSearch && matchesEstado && matchesFabricante && matchesZona;
+  });
+
+  const getEstadoColor = (estado: string) => {
+    switch (estado) {
+      case 'Operativo': return 'bg-green-100 text-green-800';
+      case 'En mantenimiento': return 'bg-yellow-100 text-yellow-800';
+      case 'Inoperativo': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const openModal = (activo: ActivoFisico, mode: 'ver' | 'editar') => {
+    setSelectedActivo(activo);
+    setModalMode(mode);
+    setModalOpen(true);
+  };
+
+  const handleSave = (updatedActivo: ActivoFisico) => {
+    setActivos(prev =>
+      prev.map(a => a.id === updatedActivo.id ? updatedActivo : a)
+    );
+    setModalOpen(false);
+  };
+
+  const limpiarFiltros = () => {
+    setSearchTerm('');
+    setFilterEstado('');
+    setFilterFabricante('');
+    setFilterZona('');
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Activos Físicos</h1>
+            <p className="text-gray-600">
+              Gestión completa de servidores físicos e infraestructura hardware
+            </p>
+          </div>
+          <Link to="/activos-fisicos/nuevo">
+            <button className="bg-petroecuador-light hover:bg-petroecuador-dark text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2">
+              <PlusIcon className="w-5 h-5" />
+              <span>Registrar Activo</span>
+            </button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Estadísticas */}
+      <EstadisticasActivos activos={activos} />
+
+      {/* Barra de búsqueda y filtros */}
+      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+          {/* Búsqueda */}
+          <div className="flex-1 relative">
+            <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre, serie, código, fabricante, modelo o ubicación..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-petroecuador-light"
+            />
+          </div>
+
+          {/* Botones de filtro */}
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`px-4 py-2 rounded-lg border transition-colors flex items-center space-x-2 ${
+                showFilters
+                  ? 'bg-petroecuador-light text-white border-petroecuador-light'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <FunnelIcon className="w-4 h-4" />
+              <span>Filtros</span>
+            </button>
+
+            {(filterEstado || filterFabricante || filterZona) && (
+              <button
+                onClick={limpiarFiltros}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Panel de filtros */}
+        {showFilters && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <FiltrosActivos
+              filterEstado={filterEstado}
+              filterFabricante={filterFabricante}
+              filterZona={filterZona}
+              onEstadoChange={setFilterEstado}
+              onFabricanteChange={setFilterFabricante}
+              onZonaChange={setFilterZona}
+              activos={activos}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Contador de resultados */}
+      <div className="mb-4">
+        <p className="text-sm text-gray-600">
+          Mostrando {filteredActivos.length} de {activos.length} activos físicos
+        </p>
+      </div>
+
+      {/* Tabla de activos */}
+      <ActivosFisicosTable
+        activos={filteredActivos}
+        onVer={(activo) => openModal(activo, 'ver')}
+        onEditar={(activo) => openModal(activo, 'editar')}
+        getEstadoColor={getEstadoColor}
+      />
+
+      {/* Mensaje cuando no hay resultados */}
+      {filteredActivos.length === 0 && (
+        <div className="text-center py-12 bg-white rounded-lg shadow-md">
+          <div className="text-gray-500 text-lg mb-2">No se encontraron activos físicos</div>
+          <p className="text-gray-400 mb-4">
+            {searchTerm || filterEstado || filterFabricante || filterZona
+              ? 'Intenta ajustar los filtros de búsqueda'
+              : 'Comienza registrando tu primer activo físico'}
+          </p>
+          {!(searchTerm || filterEstado || filterFabricante || filterZona) && (
+            <Link to="/activos-fisicos/nuevo">
+              <button className="bg-petroecuador-light hover:bg-petroecuador-dark text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                Registrar Primer Activo
+              </button>
+            </Link>
+          )}
+        </div>
+      )}
+
+            {/* Modal para ver/editar activo */}
+      {modalOpen && selectedActivo && (
+        <ActivoFisicoModal
+          activo={selectedActivo}
+          modo={modalMode}
+          onClose={() => setModalOpen(false)}
+          onSave={handleSave}
+        />
+      )}
+    </div>
+  );
+};
+
+export default ListaActivosFisicos;
