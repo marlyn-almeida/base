@@ -1,7 +1,13 @@
-// Modificado por Marlyn Almeida el 15/08/2025
+// Consolidado por Marlyn Almeida el 18/08/2025
+// Incluye tipos, mapeos y funciones API para activos físicos
 
-export interface ActivoFisicoForm {
-  id: number;
+const API_URL = "http://localhost/aplicativo/backend/Cruds/activoFisico.php";
+
+// 🧩 Tipos
+export type Estado = "Operativo" | "Inoperativo" | "En mantenimiento";
+
+export type ActivoFisico = {
+  id: string;
   naturaleza: string;
   nombre: string;
   administrador: string;
@@ -18,45 +24,170 @@ export interface ActivoFisicoForm {
   zonaId: number;
   precioCompra: number;
   ubicacion: string;
-  estado: string;
-}
+  estado: Estado;
+};
 
-// Mapea una sola fila del backend
-export function mapToActivoFisico(raw: any): ActivoFisicoForm {
+export type ActivoFisicoForm = Omit<ActivoFisico, "id">;
+
+type BackendResponse = {
+  status: string;
+  mensaje?: string;
+  id_activo_fisico?: number;
+};
+
+// 📅 Fecha actual
+const getToday = (): string => new Date().toISOString().split("T")[0];
+
+// 🔁 Mapeo individual
+export function mapToActivoFisico(raw: any): ActivoFisico {
   return {
-    id: raw.id_activo_fisico,
-    naturaleza: raw.Naturaleza,
-    nombre: raw.Activo,
-    administrador: raw.Gestion_TIC || '',
-    descripcion: raw.Descripcion_Activo,
-    etiqueta: raw.Etiqueta_Activo_Fijo,
-    codigoActivo: raw.Codigo_activo_Fijo_EBS,
-    centroCosto: raw.Centro_Costo,
-    fabricante: raw.Fabricante,
-    modelo: raw.Modelo,
-    numeroSerie: raw.Serie,
-    numeroContrato: raw.Num_Contrato,
-    fechaAdquisicion: raw.Fecha_Recepcion,
-    fechaVencimientoGarantia: raw.Caducidad_Garantia,
-    zonaId: raw.ID_Zona,
-    precioCompra: raw.Precio_Compra,
-    ubicacion: raw.Ubicacion_Desc,
-    estado: raw.Estado
+    id: `act-${raw.id_activo_fisico}`,
+    naturaleza: raw.Naturaleza ?? "",
+    nombre: raw.Activo ?? "",
+    administrador: raw.Gestion_TIC ?? "",
+    descripcion: raw.Descripcion_Activo ?? "",
+    etiqueta: raw.Etiqueta_Activo_Fijo ?? "",
+    codigoActivo: raw.Codigo_activo_Fijo_EBS ?? "",
+    centroCosto: raw.Centro_Costo ?? "",
+    fabricante: raw.Fabricante ?? "",
+    modelo: raw.Modelo ?? "",
+    numeroSerie: raw.Serie ?? "",
+    numeroContrato: raw.Num_Contrato ?? "",
+    fechaAdquisicion: raw.Fecha_Recepcion?.split("T")[0] ?? getToday(),
+    fechaVencimientoGarantia: raw.Caducidad_Garantia?.split("T")[0] ?? "",
+    zonaId: raw.ID_Zona ?? 0,
+    precioCompra: raw.Precio_Compra ?? 0,
+    ubicacion: raw.Ubicacion_Desc ?? "",
+    estado: raw.Estado ?? "Operativo",
   };
 }
 
-// Agrupa múltiples filas por activo físico
-export function groupActivosFisicos(rows: any[]): ActivoFisicoForm[] {
-  const activosMap = new Map<number, ActivoFisicoForm>();
-
+// 🔁 Agrupación
+export function groupActivosFisicos(rows: any[]): ActivoFisico[] {
+  const activosMap = new Map<string, ActivoFisico>();
   for (const row of rows) {
-    const id = row.id_activo_fisico;
-
+    const id = `act-${row.id_activo_fisico}`;
     if (!activosMap.has(id)) {
-      const activo = mapToActivoFisico(row);
-      activosMap.set(id, activo);
+      activosMap.set(id, mapToActivoFisico(row));
     }
   }
-
   return Array.from(activosMap.values());
 }
+
+// 📥 Obtener activos físicos
+export const obtenerActivosFisicos = async (): Promise<ActivoFisico[]> => {
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accion: "read" }),
+    });
+
+    const text = await res.text();
+    if (text.trim().startsWith("<")) throw new Error("Respuesta HTML inesperada");
+
+    const data = JSON.parse(text);
+    if (!Array.isArray(data)) throw new Error("Formato inesperado");
+
+    return data.map(mapToActivoFisico);
+  } catch (error) {
+    console.error("Error al obtener activos físicos:", error);
+    return [];
+  }
+};
+
+// 📤 Crear activo físico
+export const crearActivoFisico = async (a: ActivoFisicoForm): Promise<number | null> => {
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accion: "create",
+        Naturaleza: a.naturaleza,
+        Activo: a.nombre,
+        Gestion_TIC: a.administrador,
+        Descripcion_Activo: a.descripcion,
+        Etiqueta_Activo_Fijo: a.etiqueta,
+        Codigo_activo_Fijo_EBS: a.codigoActivo,
+        Centro_Costo: a.centroCosto,
+        Fabricante: a.fabricante,
+        Modelo: a.modelo,
+        Serie: a.numeroSerie,
+        Num_Contrato: a.numeroContrato,
+        Fecha_Recepcion: a.fechaAdquisicion,
+        Caducidad_Garantia: a.fechaVencimientoGarantia,
+        ID_Zona: a.zonaId,
+        Precio_Compra: a.precioCompra,
+        Ubicacion_Desc: a.ubicacion,
+        Estado: a.estado,
+      }),
+    });
+
+    const text = await res.text();
+    const result: BackendResponse = JSON.parse(text);
+    return result.status === "insertado" ? result.id_activo_fisico ?? null : null;
+  } catch (error) {
+    console.error("Error al crear activo físico:", error);
+    return null;
+  }
+};
+
+// ✏️ Editar activo físico
+export const editarActivoFisico = async (a: ActivoFisico): Promise<boolean> => {
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accion: "update",
+        id_activo_fisico: parseInt(a.id.replace("act-", "")),
+        Naturaleza: a.naturaleza,
+        Activo: a.nombre,
+        Gestion_TIC: a.administrador,
+        Descripcion_Activo: a.descripcion,
+        Etiqueta_Activo_Fijo: a.etiqueta,
+        Codigo_activo_Fijo_EBS: a.codigoActivo,
+        Centro_Costo: a.centroCosto,
+        Fabricante: a.fabricante,
+        Modelo: a.modelo,
+        Serie: a.numeroSerie,
+        Num_Contrato: a.numeroContrato,
+        Fecha_Recepcion: a.fechaAdquisicion,
+        Caducidad_Garantia: a.fechaVencimientoGarantia,
+        ID_Zona: a.zonaId,
+        Precio_Compra: a.precioCompra,
+        Ubicacion_Desc: a.ubicacion,
+        Estado: a.estado,
+      }),
+    });
+
+    const text = await res.text();
+    const result: BackendResponse = JSON.parse(text);
+    return result.status === "actualizado";
+  } catch (error) {
+    console.error("Error al editar activo físico:", error);
+    return false;
+  }
+};
+
+// 🗑️ Eliminar activo físico
+export const eliminarActivoFisico = async (id: string): Promise<boolean> => {
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accion: "disable",
+        id_activo_fisico: parseInt(id.replace("act-", "")),
+      }),
+    });
+
+    const text = await res.text();
+    const result: BackendResponse = JSON.parse(text);
+    return result.status === "deshabilitado";
+  } catch (error) {
+    console.error("Error al eliminar activo físico:", error);
+    return false;
+  }
+};
