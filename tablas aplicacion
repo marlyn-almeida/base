@@ -1,0 +1,318 @@
+USE [MSQCATPRO_MA]
+GO
+/****** Object:  Table [dbo].[aplicativo]    Script Date: 19/8/2025 12:49:34 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[aplicativo](
+	[aplcodigo] [int] IDENTITY(1,1) NOT NULL,
+	[cricodigo] [int] NOT NULL,
+	[tipccodigo] [int] NOT NULL,
+	[maccodigo] [int] NOT NULL,
+	[hercodigo] [int] NOT NULL,
+	[tipaccesocodigo] [int] NOT NULL,
+	[tipcodigo] [int] NOT NULL,
+	[tfdcodigo] [int] NOT NULL,
+	[estcodigo] [int] NOT NULL,
+	[intcodigo] [int] NOT NULL,
+	[fuecodigo] [int] NOT NULL,
+	[descodigo] [int] NOT NULL,
+	[concodigo] [int] NOT NULL,
+	[aplnombrecorto] [varchar](50) NOT NULL,
+	[aplnombrecompleto] [varchar](250) NOT NULL,
+	[aplregistro] [varchar](50) NULL,
+	[aplfechaadquisicion] [datetime] NULL,
+	[aplfechaimplementacion] [datetime] NULL,
+	[aplproveedor] [varchar](100) NULL,
+	[aplversion] [varchar](100) NULL,
+	[aplanocreacion] [int] NULL,
+	[aplnumerousuario] [int] NULL,
+	[apladministradorusuario] [varchar](200) NULL,
+	[aplvalorestimado] [varchar](100) NULL,
+	[apltransaccionesmensuales] [varchar](50) NULL,
+	[aplfechaactualizacion] [datetime] NULL,
+	[aplsla] [varchar](100) NULL,
+	[aplrutadoctecnico] [varchar](1000) NULL,
+	[aplenlace] [varchar](1200) NULL,
+	[apltiemporeinicio] [varchar](200) NULL,
+	[aplhorareinicio] [varchar](200) NULL,
+	[aplactivo] [int] NULL,
+	[apldescripcion] [varchar](750) NULL,
+	[aplobservaciones] [varchar](800) NULL,
+	[aplhsoportevigente] [varchar](20) NULL,
+	[aplhttps] [int] NULL,
+	[aplarearequirente] [varchar](300) NULL,
+	[aplsubarea] [varchar](300) NULL,
+	[aplproceso] [varchar](200) NULL,
+ CONSTRAINT [pk_aplicativo] PRIMARY KEY NONCLUSTERED 
+(
+	[aplcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[contrato_aplicativo]    Script Date: 19/8/2025 12:49:34 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[contrato_aplicativo](
+	[contcodigo] [int] IDENTITY(1,1) NOT NULL,
+	[aplcodigo] [int] NOT NULL,
+	[conttipo] [varchar](50) NOT NULL,
+	[contdescripcion] [varchar](300) NULL,
+	[contproveedor] [varchar](100) NULL,
+	[contregistro] [varchar](50) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[contcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[control]    Script Date: 19/8/2025 12:49:34 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[control](
+	[concodigo] [int] NOT NULL,
+	[connombre] [nvarchar](500) NOT NULL,
+	[conactivo] [int] NULL,
+	[condescripcion] [nvarchar](500) NULL,
+	[conobservacion] [nvarchar](500) NULL,
+ CONSTRAINT [pk_control] PRIMARY KEY NONCLUSTERED 
+(
+	[concodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[criticidad]    Script Date: 19/8/2025 12:49:34 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[criticidad](
+	[cricodigo] [int] NOT NULL,
+	[crinombre] [varchar](50) NOT NULL,
+	[criactivo] [int] NULL,
+	[cridescripcion] [varchar](500) NULL,
+	[criobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_criticidad] PRIMARY KEY NONCLUSTERED 
+(
+	[cricodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[desarrollo]    Script Date: 19/8/2025 12:49:34 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[desarrollo](
+	[descodigo] [int] NOT NULL,
+	[desnombre] [varchar](50) NOT NULL,
+	[desactivo] [int] NULL,
+	[desdescripcion] [varchar](500) NULL,
+	[desobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_desarrollo] PRIMARY KEY NONCLUSTERED 
+(
+	[descodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[estado]    Script Date: 19/8/2025 12:49:34 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[estado](
+	[estcodigo] [int] NOT NULL,
+	[estnombre] [varchar](50) NOT NULL,
+	[estactivo] [int] NULL,
+	[estdescripcion] [varchar](500) NULL,
+	[estobservaciones] [varchar](500) NULL,
+ CONSTRAINT [pk_estado] PRIMARY KEY NONCLUSTERED 
+(
+	[estcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[fuente]    Script Date: 19/8/2025 12:49:34 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[fuente](
+	[fuecodigo] [int] NOT NULL,
+	[fuenombre] [varchar](50) NOT NULL,
+	[fueactivo] [int] NULL,
+	[fuedescripcion] [varchar](500) NULL,
+	[fueobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_fuente] PRIMARY KEY NONCLUSTERED 
+(
+	[fuecodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[herramienta]    Script Date: 19/8/2025 12:49:34 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[herramienta](
+	[hercodigo] [int] NOT NULL,
+	[hernombre] [varchar](50) NOT NULL,
+	[heractivo] [int] NULL,
+	[herdescripcion] [varchar](500) NULL,
+	[herobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_herramienta] PRIMARY KEY NONCLUSTERED 
+(
+	[hercodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[tipo_acceso]    Script Date: 19/8/2025 12:49:34 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tipo_acceso](
+	[tipaccesocodigo] [int] NOT NULL,
+	[tipaccesonombre] [varchar](50) NOT NULL,
+	[tipaccesoactivo] [int] NULL,
+	[tipaccesodescripcion] [varchar](500) NULL,
+	[tipaccesoobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_tipo_acceso] PRIMARY KEY NONCLUSTERED 
+(
+	[tipaccesocodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[tipo_catastro]    Script Date: 19/8/2025 12:49:34 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tipo_catastro](
+	[tipccodigo] [int] NOT NULL,
+	[tipcnombre] [varchar](50) NOT NULL,
+	[tipcactivo] [int] NULL,
+	[tipcdescripcion] [varchar](500) NULL,
+	[tipcobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_tipo_catastro] PRIMARY KEY NONCLUSTERED 
+(
+	[tipccodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[tipo_fuentedatos]    Script Date: 19/8/2025 12:49:34 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tipo_fuentedatos](
+	[tfdcodigo] [int] NOT NULL,
+	[tfdnombre] [varchar](200) NOT NULL,
+	[tfdactivo] [int] NULL,
+	[tfddescripcion] [varchar](250) NULL,
+	[tfdobservaciones] [varchar](250) NULL,
+ CONSTRAINT [pk_tipo_fuentedatos] PRIMARY KEY NONCLUSTERED 
+(
+	[tfdcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[tipo_integracion]    Script Date: 19/8/2025 12:49:34 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tipo_integracion](
+	[intcodigo] [int] NOT NULL,
+	[intnombre] [varchar](50) NOT NULL,
+	[intactivo] [int] NULL,
+	[intdescripcion] [varchar](500) NULL,
+	[intobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_tipo_integracion] PRIMARY KEY NONCLUSTERED 
+(
+	[intcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[tipo_usuario]    Script Date: 19/8/2025 12:49:34 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tipo_usuario](
+	[tipcodigo] [int] NOT NULL,
+	[tipnombre] [varchar](50) NOT NULL,
+	[tipactivo] [int] NULL,
+	[tipdescripcion] [varchar](500) NULL,
+	[tipobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_tipo_usuario] PRIMARY KEY NONCLUSTERED 
+(
+	[tipcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_control] FOREIGN KEY([concodigo])
+REFERENCES [dbo].[control] ([concodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_control]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [FK_aplicativo_criticidad] FOREIGN KEY([cricodigo])
+REFERENCES [dbo].[criticidad] ([cricodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [FK_aplicativo_criticidad]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_desarrollo] FOREIGN KEY([descodigo])
+REFERENCES [dbo].[desarrollo] ([descodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_desarrollo]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_estado] FOREIGN KEY([estcodigo])
+REFERENCES [dbo].[estado] ([estcodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_estado]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_fuente] FOREIGN KEY([fuecodigo])
+REFERENCES [dbo].[fuente] ([fuecodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_fuente]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_herramienta] FOREIGN KEY([hercodigo])
+REFERENCES [dbo].[herramienta] ([hercodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_herramienta]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_tipo_acceso] FOREIGN KEY([tipaccesocodigo])
+REFERENCES [dbo].[tipo_acceso] ([tipaccesocodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_tipo_acceso]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_tipo_catastro] FOREIGN KEY([tipccodigo])
+REFERENCES [dbo].[tipo_catastro] ([tipccodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_tipo_catastro]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_tipo_fuentedatos] FOREIGN KEY([tfdcodigo])
+REFERENCES [dbo].[tipo_fuentedatos] ([tfdcodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_tipo_fuentedatos]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_tipo_integracion] FOREIGN KEY([intcodigo])
+REFERENCES [dbo].[tipo_integracion] ([intcodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_tipo_integracion]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_tipo_usuario] FOREIGN KEY([tipcodigo])
+REFERENCES [dbo].[tipo_usuario] ([tipcodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_tipo_usuario]
+GO
+ALTER TABLE [dbo].[contrato_aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_contrato_aplicativo_aplicativo] FOREIGN KEY([aplcodigo])
+REFERENCES [dbo].[aplicativo] ([aplcodigo])
+GO
+ALTER TABLE [dbo].[contrato_aplicativo] CHECK CONSTRAINT [fk_contrato_aplicativo_aplicativo]
+GO
