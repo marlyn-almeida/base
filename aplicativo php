@@ -1,5 +1,5 @@
 <?php
-// Creado o modificado por Marlyn Almeida – 19/08/2025
+// Creado o modificado por Marlyn Almeida – 20/08/2025
 
 include '../seguridades/incConnect.php';
 include_once '../seguridades/cors.php';
@@ -9,7 +9,7 @@ $allowedOrigin = 'http://localhost:3000';
 if (isset($_SERVER['HTTP_ORIGIN']) && $_SERVER['HTTP_ORIGIN'] === $allowedOrigin) {
     header("Access-Control-Allow-Origin: $allowedOrigin");
     header("Access-Control-Allow-Headers: Content-Type");
-    header("Access-Control-Allow-Methods: POST, GET");
+    header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 }
 
 // 📦 Tipo de contenido
@@ -25,7 +25,7 @@ if (!is_array($data)) {
     exit;
 }
 
-if (!$pdo) {
+if (!isset($pdo) || !$pdo) {
     http_response_code(500);
     echo json_encode(["error" => "No hay conexión a la base de datos"]);
     exit;
@@ -45,7 +45,7 @@ function validarCampos($campos, $data) {
 // 🧩 Insertar aplicativo
 function insertarAplicativo($data, $pdo) {
     validarCampos([
-        "cricodigo", "tipccodigo", "maccodigo", "hercodigo", "tipaccesocodigo",
+        "cricodigo", "tipccodigo", "hercodigo", "tipaccesocodigo",
         "tipcodigo", "tfdcodigo", "estcodigo", "intcodigo", "fuecodigo",
         "descodigo", "concodigo", "aplnombrecorto", "aplnombrecompleto"
     ], $data);
@@ -53,7 +53,7 @@ function insertarAplicativo($data, $pdo) {
     try {
         $stmt = $pdo->prepare("EXEC insert_aplicativo ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?");
         $stmt->execute([
-            $data["cricodigo"], $data["tipccodigo"], $data["maccodigo"], $data["hercodigo"], $data["tipaccesocodigo"],
+            $data["cricodigo"], $data["tipccodigo"], $data["hercodigo"], $data["tipaccesocodigo"],
             $data["tipcodigo"], $data["tfdcodigo"], $data["estcodigo"], $data["intcodigo"], $data["fuecodigo"],
             $data["descodigo"], $data["concodigo"], $data["aplnombrecorto"], $data["aplnombrecompleto"],
             $data["aplregistro"] ?? null, $data["aplfechaadquisicion"] ?? null, $data["aplfechaimplementacion"] ?? null,
@@ -63,7 +63,7 @@ function insertarAplicativo($data, $pdo) {
             $data["aplrutadoctecnico"] ?? null, $data["aplenlace"] ?? null, $data["apltiemporeinicio"] ?? null,
             $data["aplhorareinicio"] ?? null, $data["aplactivo"] ?? 1, $data["apldescripcion"] ?? null,
             $data["aplobservaciones"] ?? null, $data["aplhsoportevigente"] ?? null, $data["aplhttps"] ?? 0,
-            $data["aplarearequirente"] ?? null, $data["aplsubarea"] ?? null, $data["aplproceso"] ?? null
+            $data["aplarearequerente"] ?? null, $data["aplsubarea"] ?? null, $data["aplproceso"] ?? null
         ]);
         echo json_encode(["status" => "insertado"]);
     } catch (Exception $e) {
@@ -76,15 +76,15 @@ function insertarAplicativo($data, $pdo) {
 // ✏️ Actualizar aplicativo
 function actualizarAplicativo($data, $pdo) {
     validarCampos([
-        "aplcodigo", "cricodigo", "tipccodigo", "maccodigo", "hercodigo", "tipaccesocodigo",
+        "aplcodigo", "cricodigo", "tipccodigo", "hercodigo", "tipaccesocodigo",
         "tipcodigo", "tfdcodigo", "estcodigo", "intcodigo", "fuecodigo",
         "descodigo", "concodigo", "aplnombrecorto", "aplnombrecompleto"
     ], $data);
 
     try {
-        $stmt = $pdo->prepare("EXEC update_aplicativo ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?");
+        $stmt = $pdo->prepare("EXEC update_aplicativo ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?");
         $stmt->execute([
-            $data["aplcodigo"], $data["cricodigo"], $data["tipccodigo"], $data["maccodigo"], $data["hercodigo"],
+            $data["aplcodigo"], $data["cricodigo"], $data["tipccodigo"], $data["hercodigo"],
             $data["tipaccesocodigo"], $data["tipcodigo"], $data["tfdcodigo"], $data["estcodigo"], $data["intcodigo"],
             $data["fuecodigo"], $data["descodigo"], $data["concodigo"], $data["aplnombrecorto"], $data["aplnombrecompleto"],
             $data["aplregistro"] ?? null, $data["aplfechaadquisicion"] ?? null, $data["aplfechaimplementacion"] ?? null,
@@ -94,7 +94,7 @@ function actualizarAplicativo($data, $pdo) {
             $data["aplrutadoctecnico"] ?? null, $data["aplenlace"] ?? null, $data["apltiemporeinicio"] ?? null,
             $data["aplhorareinicio"] ?? null, $data["aplactivo"] ?? 1, $data["apldescripcion"] ?? null,
             $data["aplobservaciones"] ?? null, $data["aplhsoportevigente"] ?? null, $data["aplhttps"] ?? 0,
-            $data["aplarearequirente"] ?? null, $data["aplsubarea"] ?? null, $data["aplproceso"] ?? null
+            $data["aplarearequerente"] ?? null, $data["aplsubarea"] ?? null, $data["aplproceso"] ?? null
         ]);
         echo json_encode(["status" => "actualizado"]);
     } catch (Exception $e) {
@@ -123,14 +123,14 @@ function eliminarAplicativo($data, $pdo) {
     }
 }
 
-// 📥 Leer aplicativos
+// 📥 Leer todos los aplicativos
 function leerAplicativos($pdo) {
     try {
         $stmt = $pdo->query("EXEC get_aplicativos");
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($result as &$row) {
-            $row["estadoActivo"] = (int)$row["estadoActivo"] === 1 ? 1 : 0;
+            $row["estadoActivo"] = isset($row["estadoActivo"]) ? ((int)$row["estadoActivo"] === 1 ? 1 : 0) : null;
         }
 
         echo json_encode($result);
@@ -154,16 +154,52 @@ function leerMetricasPorEstado($pdo) {
     }
 }
 
+// 🔍 Obtener un aplicativo por aplcodigo
+function obtenerAplicativo($data, $pdo) {
+    if (!isset($data["aplcodigo"])) {
+        http_response_code(400);
+        echo json_encode(["error" => "Falta el campo aplcodigo"]);
+        exit;
+    }
+
+    try {
+        $stmt = $pdo->prepare("EXEC get_aplicativo_por_id ?");
+        $stmt->execute([$data["aplcodigo"]]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($result) {
+            $result["estadoActivo"] = isset($result["estadoActivo"]) ? ((int)$result["estadoActivo"] === 1 ? 1 : 0) : null;
+            echo json_encode($result);
+        } else {
+            http_response_code(404);
+            echo json_encode(["error" => "Aplicativo no encontrado"]);
+        }
+    } catch (Exception $e) {
+        error_log("Error en get_aplicativo_por_id: " . $e->getMessage());
+        http_response_code(500);
+        echo json_encode(["error" => "Error al obtener aplicativo"]);
+    }
+}
+
 // 🚦 Controlador principal
 switch ($accion) {
     case "insert":
         insertarAplicativo($data, $pdo);
+        break;
+    case "update":
+        actualizarAplicativo($data, $pdo);
+        break;
+    case "delete":
+        eliminarAplicativo($data, $pdo);
         break;
     case "read":
         leerAplicativos($pdo);
         break;
     case "metricas":
         leerMetricasPorEstado($pdo);
+        break;
+    case "obtener":
+        obtenerAplicativo($data, $pdo);
         break;
     default:
         http_response_code(400);
