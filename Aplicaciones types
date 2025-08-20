@@ -1,6 +1,3 @@
-// Consolidado por Marlyn Almeida el 19/08/2025
-// Incluye tipos, mapeos y funciones API para aplicativos
-
 const API_URL = "http://localhost/aplicativo/backend/Cruds/aplicativo.php";
 
 // 🧩 Tipos
@@ -11,32 +8,30 @@ export type Aplicativo = {
   registro: string;
   fechaAdquisicion: string;
   fechaImplementacion: string;
-  proveedor: string;
-  version: string;
+  fechaActualizacion: string;
   anioCreacion: number;
   numeroUsuarios: number;
   administradorUsuario: string;
   valorEstimado: number;
   transaccionesMensuales: number;
-  fechaActualizacion: string;
-  sla: string;
-  rutaDocTecnico: string;
-  enlace: string;
+  proveedor: string;
+  version: string;
+  soporteVigente: boolean;
   tiempoReinicio: string;
   horaReinicio: string;
-  activo: boolean;
-  descripcion: string;
-  observaciones: string;
-  soporteVigente: boolean;
+  sla: string;
   https: boolean;
+  enlace: string;
+  rutaDocTecnico: string;
   areaRequirente: string;
   subarea: string;
   proceso: string;
+  descripcion: string;
+  observaciones: string;
+  activo: boolean;
 
-  // Relaciones externas
   criticidadId: number;
   tipoCriticidadId: number;
-  macroprocesoId: number;
   herramientaId: number;
   tipoAccesoId: number;
   tipoAplicativoId: number;
@@ -57,42 +52,41 @@ type BackendResponse = {
 };
 
 // 📅 Fecha actual
-const getToday = (): string => new Date().toISOString().split("T")[0];
+export const getToday = (): string => new Date().toISOString().split("T")[0];
 
 // 🔁 Mapeo individual
 export function mapToAplicativo(raw: any): Aplicativo {
   return {
-    id: `apl-${raw.aplcodigo}`,
+    id: `${raw.aplcodigo}`,
     nombreCorto: raw.aplnombrecorto ?? "",
     nombreCompleto: raw.aplnombrecompleto ?? "",
     registro: raw.aplregistro ?? "",
     fechaAdquisicion: raw.aplfechaadquisicion?.split("T")[0] ?? "",
     fechaImplementacion: raw.aplfechaimplementacion?.split("T")[0] ?? "",
-    proveedor: raw.aplproveedor ?? "",
-    version: raw.aplversion ?? "",
+    fechaActualizacion: raw.aplfechaactualizacion?.split("T")[0] ?? "",
     anioCreacion: raw.aplanocreacion ?? 0,
     numeroUsuarios: raw.aplnumerousuario ?? 0,
     administradorUsuario: raw.apladministradorusuario ?? "",
     valorEstimado: raw.aplvalorestimado ?? 0,
     transaccionesMensuales: raw.apltransaccionesmensuales ?? 0,
-    fechaActualizacion: raw.aplfechaactualizacion?.split("T")[0] ?? "",
-    sla: raw.aplsla ?? "",
-    rutaDocTecnico: raw.aplrutadoctecnico ?? "",
-    enlace: raw.aplenlace ?? "",
+    proveedor: raw.aplproveedor ?? "",
+    version: raw.aplversion ?? "",
+    soporteVigente: raw.aplhsoportevigente === 1,
     tiempoReinicio: raw.apltiemporeinicio ?? "",
     horaReinicio: raw.aplhorareinicio ?? "",
-    activo: raw.aplactivo === 1,
-    descripcion: raw.apldescripcion ?? "",
-    observaciones: raw.aplobservaciones ?? "",
-    soporteVigente: raw.aplhsoportevigente === 1,
+    sla: raw.aplsla ?? "",
     https: raw.aplhttps === 1,
+    enlace: raw.aplenlace ?? "",
+    rutaDocTecnico: raw.aplrutadoctecnico ?? "",
     areaRequirente: raw.aplarearequirente ?? "",
     subarea: raw.aplsubarea ?? "",
     proceso: raw.aplproceso ?? "",
+    descripcion: raw.apldescripcion ?? "",
+    observaciones: raw.aplobservaciones ?? "",
+    activo: raw.estadoActivo === 1,
 
     criticidadId: raw.cricodigo ?? 0,
     tipoCriticidadId: raw.tipccodigo ?? 0,
-    macroprocesoId: raw.maccodigo ?? 0,
     herramientaId: raw.hercodigo ?? 0,
     tipoAccesoId: raw.tipaccesocodigo ?? 0,
     tipoAplicativoId: raw.tipcodigo ?? 0,
@@ -109,7 +103,7 @@ export function mapToAplicativo(raw: any): Aplicativo {
 export function groupAplicativos(rows: any[]): Aplicativo[] {
   const map = new Map<string, Aplicativo>();
   for (const row of rows) {
-    const id = `apl-${row.aplcodigo}`;
+    const id = `${row.aplcodigo}`; // ✅ sin prefijo artificial
     if (!map.has(id)) {
       map.set(id, mapToAplicativo(row));
     }
@@ -117,7 +111,7 @@ export function groupAplicativos(rows: any[]): Aplicativo[] {
   return Array.from(map.values());
 }
 
-// 📥 Obtener aplicativos
+// 📥 Obtener todos
 export const obtenerAplicativos = async (): Promise<Aplicativo[]> => {
   try {
     const res = await fetch(API_URL, {
@@ -139,7 +133,27 @@ export const obtenerAplicativos = async (): Promise<Aplicativo[]> => {
   }
 };
 
-// 📤 Crear aplicativo
+// 📥 Obtener uno por ID
+export const obtenerAplicativoPorId = async (id: string): Promise<Aplicativo | null> => {
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accion: "obtener", aplcodigo: id }),
+    });
+
+    const text = await res.text();
+    const data = JSON.parse(text);
+    if (!data || !data.aplcodigo) return null;
+
+    return mapToAplicativo(data);
+  } catch (error) {
+    console.error("Error al obtener aplicativo por ID:", error);
+    return null;
+  }
+};
+
+// 📤 Crear
 export const crearAplicativo = async (a: AplicativoForm): Promise<number | null> => {
   try {
     const res = await fetch(API_URL, {
@@ -157,13 +171,14 @@ export const crearAplicativo = async (a: AplicativoForm): Promise<number | null>
   }
 };
 
-// ✏️ Editar aplicativo
+// ✏️ Editar
 export const editarAplicativo = async (a: Aplicativo): Promise<boolean> => {
   try {
+    const aplcodigo = parseInt(a.id); // ✅ sin replace
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accion: "update", aplcodigo: parseInt(a.id.replace("apl-", "")), ...a }),
+      body: JSON.stringify({ accion: "update", aplcodigo, ...a }),
     });
 
     const text = await res.text();
@@ -175,13 +190,14 @@ export const editarAplicativo = async (a: Aplicativo): Promise<boolean> => {
   }
 };
 
-// 🗑️ Eliminar aplicativo
+// 🗑️ Eliminar
 export const eliminarAplicativo = async (id: string): Promise<boolean> => {
   try {
+    const aplcodigo = parseInt(id); // ✅ sin replace
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accion: "delete", aplcodigo: parseInt(id.replace("apl-", "")) }),
+      body: JSON.stringify({ accion: "delete", aplcodigo }),
     });
 
     const text = await res.text();
