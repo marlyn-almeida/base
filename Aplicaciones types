@@ -78,7 +78,7 @@ export function mapToAplicativo(raw: any): Aplicativo {
     https: raw.aplhttps === 1,
     enlace: raw.aplenlace ?? "",
     rutaDocTecnico: raw.aplrutadoctecnico ?? "",
-    areaRequirente: raw.aplarearequirente ?? "",
+    areaRequirente: raw.aplarearequerente ?? "",
     subarea: raw.aplsubarea ?? "",
     proceso: raw.aplproceso ?? "",
     descripcion: raw.apldescripcion ?? "",
@@ -103,7 +103,7 @@ export function mapToAplicativo(raw: any): Aplicativo {
 export function groupAplicativos(rows: any[]): Aplicativo[] {
   const map = new Map<string, Aplicativo>();
   for (const row of rows) {
-    const id = `${row.aplcodigo}`; // ✅ sin prefijo artificial
+    const id = `${row.aplcodigo}`;
     if (!map.has(id)) {
       map.set(id, mapToAplicativo(row));
     }
@@ -111,8 +111,8 @@ export function groupAplicativos(rows: any[]): Aplicativo[] {
   return Array.from(map.values());
 }
 
-// 📥 Obtener todos
-export const obtenerAplicativos = async (): Promise<Aplicativo[]> => {
+// 📥 Leer todos (equivalente a leerAplicativos en PHP)
+export const leerAplicativos = async (): Promise<Aplicativo[]> => {
   try {
     const res = await fetch(API_URL, {
       method: "POST",
@@ -128,12 +128,12 @@ export const obtenerAplicativos = async (): Promise<Aplicativo[]> => {
 
     return data.map(mapToAplicativo);
   } catch (error) {
-    console.error("Error al obtener aplicativos:", error);
+    console.error("Error al leer aplicativos:", error);
     return [];
   }
 };
 
-// 📥 Obtener uno por ID
+// 📥 Obtener uno por ID (equivale a obtenerAplicativo en PHP)
 export const obtenerAplicativoPorId = async (id: string): Promise<Aplicativo | null> => {
   try {
     const res = await fetch(API_URL, {
@@ -154,7 +154,7 @@ export const obtenerAplicativoPorId = async (id: string): Promise<Aplicativo | n
 };
 
 // 📤 Crear
-export const crearAplicativo = async (a: AplicativoForm): Promise<number | null> => {
+export const insertarAplicativo = async (a: AplicativoForm): Promise<number | null> => {
   try {
     const res = await fetch(API_URL, {
       method: "POST",
@@ -166,15 +166,15 @@ export const crearAplicativo = async (a: AplicativoForm): Promise<number | null>
     const result: BackendResponse = JSON.parse(text);
     return result.status === "insertado" ? result.aplcodigo ?? null : null;
   } catch (error) {
-    console.error("Error al crear aplicativo:", error);
+    console.error("Error al insertar aplicativo:", error);
     return null;
   }
 };
 
 // ✏️ Editar
-export const editarAplicativo = async (a: Aplicativo): Promise<boolean> => {
+export const actualizarAplicativo = async (a: Aplicativo): Promise<boolean> => {
   try {
-    const aplcodigo = parseInt(a.id); // ✅ sin replace
+    const aplcodigo = parseInt(a.id);
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -185,7 +185,7 @@ export const editarAplicativo = async (a: Aplicativo): Promise<boolean> => {
     const result: BackendResponse = JSON.parse(text);
     return result.status === "actualizado";
   } catch (error) {
-    console.error("Error al editar aplicativo:", error);
+    console.error("Error al actualizar aplicativo:", error);
     return false;
   }
 };
@@ -193,7 +193,7 @@ export const editarAplicativo = async (a: Aplicativo): Promise<boolean> => {
 // 🗑️ Eliminar
 export const eliminarAplicativo = async (id: string): Promise<boolean> => {
   try {
-    const aplcodigo = parseInt(id); // ✅ sin replace
+    const aplcodigo = parseInt(id);
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
