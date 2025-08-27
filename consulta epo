@@ -1,0 +1,367 @@
+SELECT
+  LN.NodeName AS NombreServidor,
+  CP.IPAddress,
+  CP.OSVersion,
+  LN.LastUpdate AS UltimaConexionAgenteServidor,
+
+  -- Antivirus
+  PP.ProductCode AS ProductoAntivirus,
+  PP.ProductVersion AS VersionAntivirus,
+  PP.DATVer AS VersionDAT,
+  PP.DATDate AS FechaDAT,
+  PP.LastInstalled AS FechaUltimaInstalacion,
+
+  -- Core de datos
+  PV.verProductMajor AS CoreMajor,
+  PV.verProductMinor AS CoreMinor,
+  PV.verProductRevision AS CoreRevision,
+  PV.verProductBuild AS CoreBuild,
+
+  -- Último análisis
+  EV.FechaAnalisis,
+  EV.ThreatName AS UltimaAmenazaDetectada,
+  EV.ThreatActionTaken AS AccionTomada,
+
+  -- Reglas de firewall
+  MAX(PSV.SettingName) AS NombreReglaFirewall,
+  MAX(PSV.SettingValue) AS ValorReglaFirewall
+
+FROM
+  EPOLeafNodeMT LN
+  LEFT JOIN EPOComputerPropertiesMT CP ON LN.AutoID = CP.ParentID
+  LEFT JOIN EPOProductPropertiesMT PP ON LN.AutoID = PP.ParentID
+  LEFT JOIN EPOProductVersionsMT PV ON PP.AutoID = PV.ParentID
+
+  -- Eventos de análisis
+  LEFT JOIN (
+      SELECT
+        AgentGUID,
+        MAX(DetectedUTC) AS FechaAnalisis,
+        MAX(ThreatName) AS ThreatName,
+        MAX(ThreatActionTaken) AS ThreatActionTaken
+      FROM EPOEventsMT
+      WHERE ThreatName LIKE '%Scan%' OR ThreatType LIKE '%Scan%'
+      GROUP BY AgentGUID
+  ) EV ON LN.AgentGUID = EV.AgentGUID
+
+  -- Reglas de firewall vía cadena de asignación
+  LEFT JOIN EPOPolicyAssignmentMT PA ON LN.AutoID = PA.NodeID
+  LEFT JOIN EPOPolicyObjectsMT PO ON PA.PolicyObjectID = PO.PolicyObjectID
+  LEFT JOIN EPOPolicyObjectToSettingsMT POS ON PO.PolicyObjectID = POS.PolicyObjectID
+  LEFT JOIN EPOPolicySettingValuesMT PSV ON POS.PolicySettingsID = PSV.PolicySettingsID
+    AND (PSV.SettingName LIKE '%Firewall%' OR PSV.SettingName LIKE '%HIPS%')
+
+GROUP BY
+  LN.NodeName, CP.IPAddress, CP.OSVersion, LN.LastUpdate,
+  PP.ProductCode, PP.ProductVersion, PP.DATVer, PP.DATDate, PP.LastInstalled,
+  PV.verProductMajor, PV.verProductMinor, PV.verProductRevision, PV.verProductBuild,
+  EV.FechaAnalisis, EV.ThreatName, EV.ThreatActionTaken
+
+ORDER BY
+  LN.LastUpdate DESC;
+
+  ---------------------------------------------------------------------------------------------------------
+
+SELECT
+  LN.NodeName AS NombreServidor,
+  CP.IPAddress,
+  CP.OSVersion,
+  CP.TotalPhysicalMemory,
+  LN.LastUpdate AS UltimaConexionAgenteServidor,
+
+  -- Antivirus
+  PP.ProductCode AS ProductoAntivirus,
+  PP.ProductVersion AS VersionAntivirus,
+  PP.DATVer AS VersionDAT,
+  PP.DATDate AS FechaDAT,
+  PP.LastInstalled AS FechaUltimaInstalacion,
+
+  -- Core de datos
+  PV.verProductMajor AS CoreMajor,
+  PV.verProductMinor AS CoreMinor,
+  PV.verProductRevision AS CoreRevision,
+  PV.verProductBuild AS CoreBuild,
+
+  -- Último análisis
+  MAX(EV.DetectedUTC) AS FechaUltimoAnalisis,
+  MAX(EV.ThreatName) AS UltimaAmenazaDetectada,
+  MAX(EV.ThreatActionTaken) AS AcciónTomada,
+
+  -- Reglas de firewall
+  MAX(PSV.SettingName) AS NombreReglaFirewall,
+  MAX(PSV.SettingValue) AS ValorReglaFirewall
+
+FROM
+  EPOLeafNodeMT LN
+  LEFT JOIN EPOComputerPropertiesMT CP ON LN.AutoID = CP.ParentID
+  LEFT JOIN EPOProductPropertiesMT PP ON LN.AutoID = PP.ParentID
+  LEFT JOIN EPOProductVersionsMT PV ON PP.AutoID = PV.ParentID
+  LEFT JOIN EPOEventsMT EV ON LN.AgentGUID = EV.AgentGUID AND EV.ThreatName LIKE '%Scan%'
+  LEFT JOIN EPOPolicySettingValuesMT PSV ON PSV.SettingName LIKE '%Firewall%'
+
+GROUP BY
+  LN.NodeName, CP.IPAddress, CP.OSVersion, CP.TotalPhysicalMemory,
+  LN.LastUpdate, PP.ProductCode, PP.ProductVersion, PP.DATVer, PP.DATDate, PP.LastInstalled,
+  PV.verProductMajor, PV.verProductMinor, PV.verProductRevision, PV.verProductBuild
+ORDER BY
+  LN.LastUpdate DESC;
+  -------------------------------------------------------------------------------------------
+
+  SELECT
+  LN.NodeName AS NombreServidor,
+  CP.IPAddress,
+  CP.OSVersion,
+  LN.LastUpdate AS UltimaConexionAgenteServidor,
+
+  -- Antivirus
+  PP.ProductCode AS ProductoAntivirus,
+  PP.ProductVersion AS VersionAntivirus,
+  PP.DATVer AS VersionDAT,
+  PP.DATDate AS FechaDAT,
+  PP.LastInstalled AS FechaUltimaInstalacion,
+
+  -- Core de datos
+  PV.verProductMajor AS CoreMajor,
+  PV.verProductMinor AS CoreMinor,
+  PV.verProductRevision AS CoreRevision,
+  PV.verProductBuild AS CoreBuild,
+
+  -- Último análisis
+  MAX(EV.DetectedUTC) AS FechaUltimoAnalisis,
+  MAX(EV.ThreatName) AS UltimaAmenazaDetectada,
+  MAX(EV.ThreatActionTaken) AS AccionTomada,
+
+  -- Reglas de firewall
+  MAX(PSV.SettingName) AS NombreReglaFirewall,
+  MAX(PSV.SettingValue) AS ValorReglaFirewall
+
+FROM
+  EPOLeafNodeMT LN
+  LEFT JOIN EPOComputerPropertiesMT CP ON LN.AutoID = CP.ParentID
+  LEFT JOIN EPOProductPropertiesMT PP ON LN.AutoID = PP.ParentID
+  LEFT JOIN EPOProductVersionsMT PV ON PP.AutoID = PV.ParentID
+  LEFT JOIN EPOEventsMT EV ON LN.AgentGUID = EV.AgentGUID
+    AND (EV.ThreatName LIKE '%Scan%' OR EV.ThreatType LIKE '%Scan%')
+  LEFT JOIN EPOPolicySettingValuesMT PSV ON PSV.SettingName LIKE '%Firewall%'
+
+GROUP BY
+  LN.NodeName, CP.IPAddress, CP.OSVersion, LN.LastUpdate,
+  PP.ProductCode, PP.ProductVersion, PP.DATVer, PP.DATDate, PP.LastInstalled,
+  PV.verProductMajor, PV.verProductMinor, PV.verProductRevision, PV.verProductBuild
+
+ORDER BY
+  LN.LastUpdate DESC;
+----------------------------------------------------------------------------------------------------
+SELECT
+  LN.NodeName AS NombreServidor,
+  CP.IPAddress,
+  CP.OSVersion,
+  LN.LastUpdate AS UltimaConexionAgenteServidor,
+
+  -- Antivirus
+  SW.SoftwareName AS NombreProductoAntivirus,
+  PP.ProductCode AS CodigoProductoAntivirus,
+  PP.ProductVersion AS VersionAntivirus,
+  PP.DATVer AS VersionDAT,
+  PP.DATDate AS FechaDAT,
+  PP.LastInstalled AS FechaUltimaInstalacion,
+
+  -- Core de datos
+  PV.verProductMajor AS CoreMajor,
+  PV.verProductMinor AS CoreMinor,
+  PV.verProductRevision AS CoreRevision,
+  PV.verProductBuild AS CoreBuild,
+
+  -- Último análisis
+  MAX(EV.DetectedUTC) AS FechaUltimoAnalisis,
+  MAX(EV.ThreatName) AS UltimaAmenazaDetectada,
+  MAX(EV.ThreatActionTaken) AS AccionTomada,
+
+  -- Reglas de firewall
+  MAX(PSV.SettingName) AS NombreReglaFirewall,
+  MAX(PSV.SettingValue) AS ValorReglaFirewall
+
+FROM
+  EPOLeafNodeMT LN
+  LEFT JOIN EPOComputerPropertiesMT CP ON LN.AutoID = CP.ParentID
+  LEFT JOIN EPOProductPropertiesMT PP ON LN.AutoID = PP.ParentID
+  LEFT JOIN EPOSoftware SW ON PP.ProductCode = SW.ProductCode
+  LEFT JOIN EPOProductVersionsMT PV ON PP.AutoID = PV.ParentID
+  LEFT JOIN EPOEventsMT EV ON LN.AgentGUID = EV.AgentGUID
+    AND (EV.ThreatName LIKE '%Scan%' OR EV.ThreatType LIKE '%Scan%')
+  LEFT JOIN EPOPolicySettingValuesMT PSV ON PSV.SettingName LIKE '%Firewall%'
+
+GROUP BY
+  LN.NodeName, CP.IPAddress, CP.OSVersion, LN.LastUpdate,
+  SW.SoftwareName, PP.ProductCode, PP.ProductVersion, PP.DATVer, PP.DATDate, PP.LastInstalled,
+  PV.verProductMajor, PV.verProductMinor, PV.verProductRevision, PV.verProductBuild
+
+ORDER BY
+  LN.LastUpdate DESC;
+
+---------------------------------------------------------------------------------
+SELECT
+  LN.NodeName AS NombreServidor,
+  CP.IPAddress,
+  CP.OSVersion,
+  LN.LastUpdate AS UltimaConexionAgenteServidor,
+
+  -- Antivirus
+  PP.ProductCode AS CodigoProductoAntivirus,
+  PP.ProductVersion AS VersionAntivirus,
+  PP.DATVer AS VersionDAT,
+  PP.DATDate AS FechaDAT,
+  PP.LastInstalled AS FechaUltimaInstalacion,
+
+  -- Core de datos
+  PV.verProductMajor AS CoreMajor,
+  PV.verProductMinor AS CoreMinor,
+  PV.verProductRevision AS CoreRevision,
+  PV.verProductBuild AS CoreBuild,
+
+  -- Último análisis
+  MAX(EV.DetectedUTC) AS FechaUltimoAnalisis,
+  MAX(EV.ThreatName) AS UltimaAmenazaDetectada,
+  MAX(EV.ThreatActionTaken) AS AccionTomada,
+
+  -- Reglas de firewall
+  MAX(PSV.SettingName) AS NombreReglaFirewall,
+  MAX(PSV.SettingValue) AS ValorReglaFirewall
+
+FROM
+  EPOLeafNodeMT LN
+  LEFT JOIN EPOComputerPropertiesMT CP ON LN.AutoID = CP.ParentID
+  LEFT JOIN EPOProductPropertiesMT PP ON LN.AutoID = PP.ParentID
+  LEFT JOIN EPOProductVersionsMT PV ON PP.AutoID = PV.ParentID
+  LEFT JOIN EPOEventsMT EV ON LN.AgentGUID = EV.AgentGUID
+    AND (EV.ThreatName LIKE '%Scan%' OR EV.ThreatType LIKE '%Scan%')
+  LEFT JOIN EPOPolicySettingValuesMT PSV ON PSV.SettingName LIKE '%Firewall%'
+
+GROUP BY
+  LN.NodeName, CP.IPAddress, CP.OSVersion, LN.LastUpdate,
+  PP.ProductCode, PP.ProductVersion, PP.DATVer, PP.DATDate, PP.LastInstalled,
+  PV.verProductMajor, PV.verProductMinor, PV.verProductRevision, PV.verProductBuild
+
+ORDER BY
+  LN.LastUpdate DESC;
+  ----------------------------------------------------------------------------------------------
+SELECT
+  LN.NodeName AS NombreServidor,
+  CP.IPAddress,
+  CP.OSVersion,
+  LN.LastUpdate AS UltimaConexionAgenteServidor,
+
+  -- Producto instalado (nombre legible)
+  CASE PP.ProductCode
+    WHEN 'ENDPOINTSECURITY' THEN 'Endpoint Security Platform'
+    WHEN 'THREATPREVENTION' THEN 'Threat Prevention'
+    WHEN 'ADAPTIVETHREATPROTECTION' THEN 'Adaptive Threat Protection'
+    WHEN 'EPOAGENT3000' THEN 'McAfee Agent'
+    WHEN 'VIRUSCAN8800' THEN 'VirusScan Enterprise'
+    WHEN 'DATREP' THEN 'DAT Reputation'
+    ELSE PP.ProductCode
+  END AS NombreProducto,
+
+  PP.ProductCode AS CodigoProducto,
+  PP.ProductVersion AS VersionProducto,
+  PP.DATVer AS VersionDAT,
+  PP.DATDate AS FechaDAT,
+  PP.LastInstalled AS FechaUltimaInstalacion,
+
+  -- Core de datos
+  PV.verProductMajor AS CoreMajor,
+  PV.verProductMinor AS CoreMinor,
+  PV.verProductRevision AS CoreRevision,
+  PV.verProductBuild AS CoreBuild,
+
+  -- Último análisis
+  MAX(EV.DetectedUTC) AS FechaUltimoAnalisis,
+  MAX(EV.ThreatName) AS UltimaAmenazaDetectada,
+ -- MAX(EV.ThreatActionTaken) AS AccionTomada,
+
+  -- Reglas de firewall
+  MAX(PSV.SettingName) AS NombreReglaFirewall,
+  MAX(PSV.SettingValue) AS ValorReglaFirewall,
+
+  -- Eventos del producto
+  MAX(PE.Type) AS TipoAccionProducto,
+  MAX(PE.DetectedUTC) AS FechaNotificacionProducto
+
+FROM
+  EPOLeafNodeMT LN
+  LEFT JOIN EPOComputerPropertiesMT CP ON LN.AutoID = CP.ParentID
+  LEFT JOIN EPOProductPropertiesMT PP ON LN.AutoID = PP.ParentID
+  LEFT JOIN EPOProductVersionsMT PV ON PP.AutoID = PV.ParentID
+  LEFT JOIN EPOEventsMT EV ON LN.AgentGUID = EV.AgentGUID
+    AND (EV.ThreatName LIKE '%Scan%' OR EV.ThreatType LIKE '%Scan%')
+  LEFT JOIN EPOPolicySettingValuesMT PSV ON PSV.SettingName LIKE '%Firewall%'
+  LEFT JOIN EPOProductEventsMT PE ON LN.AgentGUID = PE.AgentGUID AND PP.ProductCode = PE.ProductCode
+
+GROUP BY
+  LN.NodeName, CP.IPAddress, CP.OSVersion, LN.LastUpdate,
+  PP.ProductCode, PP.ProductVersion, PP.DATVer, PP.DATDate, PP.LastInstalled,
+  PV.verProductMajor, PV.verProductMinor, PV.verProductRevision, PV.verProductBuild
+
+ORDER BY
+  LN.LastUpdate DESC;
+
+  ------------------------------------------------------------------------------------------------------
+  SELECT
+  LN.NodeName AS NombreServidor,
+  CP.IPAddress,
+  CP.OSVersion,
+  LN.LastUpdate AS UltimaConexionAgenteServidor,
+
+  -- Producto instalado (nombre legible)
+  CASE PP.ProductCode
+    WHEN 'ENDPOINTSECURITY' THEN 'Endpoint Security Platform'
+    WHEN 'THREATPREVENTION' THEN 'Threat Prevention'
+    WHEN 'ADAPTIVETHREATPROTECTION' THEN 'Adaptive Threat Protection'
+    WHEN 'EPOAGENT3000' THEN 'McAfee Agent'
+    WHEN 'VIRUSCAN8800' THEN 'VirusScan Enterprise'
+    WHEN 'DATREP' THEN 'DAT Reputation'
+    ELSE PP.ProductCode
+  END AS NombreProducto,
+
+  PP.ProductCode AS CodigoProducto,
+  PP.ProductVersion AS VersionProducto,
+  PP.DATVer AS VersionDAT,
+  PP.DATDate AS FechaDAT,
+  PP.LastInstalled AS FechaUltimaInstalacion,
+
+  -- Core de datos
+  PV.verProductMajor AS CoreMajor,
+  PV.verProductMinor AS CoreMinor,
+  PV.verProductRevision AS CoreRevision,
+  PV.verProductBuild AS CoreBuild,
+
+  -- Último análisis
+  MAX(EV.DetectedUTC) AS FechaUltimoAnalisis,
+  MAX(EV.ThreatName) AS UltimaAmenazaDetectada,
+  MAX(EV.ThreatActionTaken) AS AccionTomada,
+
+  -- Reglas de firewall
+  MAX(PSV.SettingName) AS NombreReglaFirewall,
+  MAX(PSV.SettingValue) AS ValorReglaFirewall,
+
+  -- Eventos del producto
+  MAX(PE.Type) AS TipoAccionProducto,
+  MAX(PE.DetectedUTC) AS FechaNotificacionProducto
+
+FROM
+  EPOLeafNodeMT LN
+  LEFT JOIN EPOComputerPropertiesMT CP ON LN.AutoID = CP.ParentID
+  LEFT JOIN EPOProductPropertiesMT PP ON LN.AutoID = PP.ParentID
+  LEFT JOIN EPOProductVersionsMT PV ON PP.AutoID = PV.ParentID
+  LEFT JOIN EPOEventsMT EV ON LN.AgentGUID = EV.AgentGUID
+    AND (EV.ThreatName LIKE '%Scan%' OR EV.ThreatType LIKE '%Scan%')
+  LEFT JOIN EPOPolicySettingValuesMT PSV ON PSV.SettingName LIKE '%Firewall%'
+  LEFT JOIN EPOProductEventsMT PE ON LN.AgentGUID = PE.AgentGUID AND PP.ProductCode = PE.ProductCode
+
+GROUP BY
+  LN.NodeName, CP.IPAddress, CP.OSVersion, LN.LastUpdate,
+  PP.ProductCode, PP.ProductVersion, PP.DATVer, PP.DATDate, PP.LastInstalled,
+  PV.verProductMajor, PV.verProductMinor, PV.verProductRevision, PV.verProductBuild
+
+ORDER BY
+  LN.LastUpdate DESC;
