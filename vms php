@@ -1,0 +1,31 @@
+<?php
+header('Content-Type: application/json');
+require_once 'config.php';
+
+// Obtener token de vCenter
+$token = getVCenterToken($vcenterUrl, $user, $pass);
+
+// Llamar API para obtener VMs
+$ch = curl_init("$vcenterUrl/vcenter/vm");
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["vmware-api-session-id: $token"]);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+$response = curl_exec($ch);
+
+if(curl_errno($ch)) {
+    http_response_code(500);
+    die(json_encode(["error" => "Error al consultar VMs: " . curl_error($ch)]));
+}
+
+curl_close($ch);
+
+$vms = json_decode($response, true);
+
+// Responder JSON al frontend
+if(isset($vms['value'])) {
+    echo json_encode($vms['value'], JSON_PRETTY_PRINT);
+} else {
+    http_response_code(404);
+    echo json_encode(["error" => "No se encontraron VMs"]);
+}
