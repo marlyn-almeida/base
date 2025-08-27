@@ -1,0 +1,104 @@
+CREATE TABLE Seguridad_Servidor (
+    SystemID INT,
+    SystemName NVARCHAR(200),
+    IPAddress NVARCHAR(50),
+    ProductName NVARCHAR(200),
+    ProductVersion NVARCHAR(50),
+    InstallDate DATETIME,
+    DATVersion NVARCHAR(50),
+    EngineVersion NVARCHAR(50),
+    LastUpdate DATETIME,
+    LastConnection DATETIME,
+    LastScan DATETIME,
+    FirewallPolicy NVARCHAR(200),
+    FirewallRules NVARCHAR(MAX)
+);
+
+
+
+
+SELECT 
+    ln.AutoID AS SystemID,
+    ln.NodeName AS SystemName,
+    cp.IPAddress,
+    pp.ProductName,
+    CAST(pv.MajorVersion AS NVARCHAR(10)) + '.' + 
+    CAST(pv.MinorVersion AS NVARCHAR(10)) + '.' + 
+    CAST(pv.PatchVersion AS NVARCHAR(10)) AS ProductVersion,
+    pp.InstallDate,
+    pp.DATVersion,
+    pp.EngineVersion,
+    pp.LastUpdate,
+    cp.LastASCI AS LastConnection
+INTO #Tmp_Antivirus
+FROM [EPO_SERVER]...EPOLeafNodeMT ln
+JOIN [EPO_SERVER]...EPOComputerPropertiesMT cp ON ln.AutoID = cp.AutoID
+JOIN [EPO_SERVER]...EPOProductPropertiesMT pp ON ln.AutoID = pp.AutoID
+JOIN [EPO_SERVER]...EPOProductVersionsMT pv ON pp.AutoID = pv.AutoID
+WHERE pp.ProductCode LIKE '%THREATPREVENTION%';  -- Antivirus ENS
+
+
+
+
+SELECT 
+    ev.AgentGUID AS SystemID,
+    MAX(ev.ReceivedUTC) AS LastScan
+INTO #Tmp_Scans
+FROM [EPO_SERVER]...EPOEventsMT ev
+WHERE ev.ThreatEventID IN (1092, 1093, 1094)  -- Códigos típicos de escaneo
+GROUP BY ev.AgentGUID;
+
+
+SELECT 
+    pa.NodeID AS SystemID,
+    po.PolicyName AS FirewallPolicy,
+    ps.SettingName + '=' + ps.SettingValue AS FirewallRules
+INTO #Tmp_Firewall
+FROM [EPO_SERVER]...EPOPolicyAssignmentMT pa
+JOIN [EPO_SERVER]...EPOPolicyObjectsMT po ON pa.PolicyID = po.PolicyID
+JOIN [EPO_SERVER]...EPOPolicySettingValuesMT ps ON po.SettingsID = ps.SettingsID
+WHERE po.PolicyName LIKE '%FIREWALL%';
+
+
+
+
+INSERT INTO Seguridad_Servidor
+SELECT 
+    a.SystemID,
+    a.SystemName,
+    a.IPAddress,
+    a.ProductName,
+    a.ProductVersion,
+    a.InstallDate,
+    a.DATVersion,
+    a.EngineVersion,
+    a.LastUpdate,
+    a.LastConnection,
+    s.LastScan,
+    f.FirewallPolicy,
+    f.FirewallRules
+FROM #Tmp_Antivirus a
+LEFT JOIN #Tmp_Scans s ON a.SystemID = s.SystemID
+LEFT JOIN #Tmp_Firewall f ON a.SystemID = f.SystemID;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
