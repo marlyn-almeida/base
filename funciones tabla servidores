@@ -1,0 +1,350 @@
+USE [MSQCATPRO_MA]
+GO
+/****** Object:  StoredProcedure [dbo].[disable_servidor]    Script Date: 28/8/2025 13:46:25 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[disable_servidor]
+    @ID_Servidor INT,
+    @estcodigo_inactivo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM Servidores WHERE ID_Servidor = @ID_Servidor)
+        THROW 56020, 'Servidor no encontrado.', 1;
+
+    IF NOT EXISTS (SELECT 1 FROM estado WHERE estcodigo = @estcodigo_inactivo AND estactivo = 0)
+        THROW 56021, 'Estado inactivo inválido.', 1;
+
+    UPDATE dbo.Servidores
+    SET estcodigo = @estcodigo_inactivo
+    WHERE ID_Servidor = @ID_Servidor;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_servidor_by_id]    Script Date: 28/8/2025 13:46:25 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[get_servidor_by_id]
+    @ID_Servidor INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        S.*, E.estnombre AS Estado, Z.Zona, Z.Provincia, Z.Ciudad, Z.Canton
+    FROM dbo.Servidores S
+    LEFT JOIN estado E ON S.estcodigo = E.estcodigo
+    LEFT JOIN ZONA_A Z ON S.ID_Zona = Z.ID_Zona
+    WHERE S.ID_Servidor = @ID_Servidor;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_servidores]    Script Date: 28/8/2025 13:46:25 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[get_servidores]
+    @estcodigo INT = NULL,
+    @ID_Zona INT = NULL,
+    @ID_Base INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        S.ID_Servidor,
+        S.Nombre_Servidor,
+        S.Tipo_Equipo,
+        S.OS,
+        S.memoria_ram,
+        S.procesador,
+        S.numero_discos,
+        S.uso_disco,
+        S.Espacio_Disco_GB,
+        S.Ambiente_Ejecucion,
+        S.Tipo_servicio,
+        S.Monitoreo_PRTG,
+        S.Disponibilidad,
+        S.Registro_PRTG,
+        S.Observacion,
+        S.Criticidad_Organizacion_1,
+        S.Criticidad_Organizacion_2,
+        S.Dia_Ejecucion_Serv,
+        S.Hora_Serv,
+        S.tiempo_Respaldo_Serv,
+        S.ruta_respaldo_Granular_Serv,
+        S.Periodo_Retencion_Serv,
+        S.Doble_Copia_Serv,
+        S.Dia_Ejecucion_Almac,
+        S.Hora_Almac,
+        S.ruta_respaldo_Granular_Almac,
+        S.Periodo_Retencion_Almac,
+        S.Doble_Copia_Almac,
+        S.interfaz_red,
+        S.velocidad,
+        S.hipervisor,
+        S.tipo_disco,
+        S.fech_despliegue,
+        S.antivirus,
+        S.firewall,
+        S.reglas_aplicadas,
+        S.nucleos,
+
+        -- 🔗 Relaciones externas
+        E.estnombre AS Estado,
+        B.Nombre_Base,
+        B.Nombre_Instancia,
+        Z.Zona,
+        Z.Provincia,
+        Z.Ciudad,
+        Z.Canton,
+        Z.Locacion,
+        Z.Ubicacion,
+        Z.VCenter
+
+    FROM dbo.Servidores S
+    LEFT JOIN dbo.estado E ON S.estcodigo = E.estcodigo
+    LEFT JOIN dbo.BaseDatos B ON S.ID_Base = B.ID_Base
+    LEFT JOIN dbo.ZONA_A Z ON S.ID_Zona = Z.ID_Zona
+
+    -- 🎯 Filtros dinámicos
+    WHERE (@estcodigo IS NULL OR S.estcodigo = @estcodigo)
+      AND (@ID_Zona IS NULL OR S.ID_Zona = @ID_Zona)
+      AND (@ID_Base IS NULL OR S.ID_Base = @ID_Base)
+
+    -- 📊 Orden lógico
+    ORDER BY S.Criticidad_Organizacion_1 DESC, S.Nombre_Servidor ASC;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_total_aplicativos_por_servidor]    Script Date: 28/8/2025 13:46:25 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE   PROCEDURE [dbo].[get_total_aplicativos_por_servidor]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        S.ID_Servidor,
+        S.Nombre_Servidor,
+        COUNT(A.aplcodigo) AS Total_Aplicativos
+    FROM dbo.Servidores S
+    LEFT JOIN dbo.Servidor_Aplicaciones A ON S.ID_Servidor = A.ID_Servidor
+    GROUP BY S.ID_Servidor, S.Nombre_Servidor
+    ORDER BY Total_Aplicativos ASC;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_total_servidores]    Script Date: 28/8/2025 13:46:25 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[get_total_servidores]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT COUNT(*) AS Total_Servidores
+    FROM dbo.Servidores;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_total_servidores_estado]    Script Date: 28/8/2025 13:46:25 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[get_total_servidores_estado]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT E.estnombre AS Estado, COUNT(S.ID_Servidor) AS Total
+    FROM dbo.Servidores S
+    INNER JOIN estado E ON S.estcodigo = E.estcodigo
+    GROUP BY E.estnombre;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_total_servidores_por_estado]    Script Date: 28/8/2025 13:46:25 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[get_total_servidores_por_estado]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        E.estnombre AS Estado,
+        COUNT(S.ID_Servidor) AS Total_Servidores
+    FROM dbo.estado E
+    LEFT JOIN dbo.Servidores S ON E.estcodigo = S.estcodigo
+    GROUP BY E.estnombre
+    ORDER BY Total_Servidores ASC;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_total_servidores_zona]    Script Date: 28/8/2025 13:46:25 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[get_total_servidores_zona]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT Z.Zona, COUNT(S.ID_Servidor) AS Total
+    FROM dbo.Servidores S
+    INNER JOIN ZONA_A Z ON S.ID_Zona = Z.ID_Zona
+    GROUP BY Z.Zona;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[insert_servidor]    Script Date: 28/8/2025 13:46:25 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[insert_servidor]
+    @Nombre_Servidor VARCHAR(100),
+    @Monitoreo_PRTG VARCHAR(250),
+    @Disponibilidad VARCHAR(250),
+    @Observacion VARCHAR(200),
+    @Registro_PRTG VARCHAR(100),
+    @Tipo_Equipo VARCHAR(100),
+    @OS VARCHAR(200),
+    @Espacio_Disco_GB VARCHAR(100),
+    @Criticidad_Organizacion_1 INT,
+    @Criticidad_Organizacion_2 INT,
+    @Tipo_servicio VARCHAR(100),
+    @Ambiente_Ejecucion VARCHAR(100),
+    @Dia_Ejecucion_Serv VARCHAR(250),
+    @Hora_Serv VARCHAR(250),
+    @interfaz_red VARCHAR(255),
+    @velocidad VARCHAR(50),
+    @hipervisor VARCHAR(100),
+    @numero_discos INT,
+    @uso_disco VARCHAR(255),
+    @memoria_ram VARCHAR(255),
+    @procesador VARCHAR(255),
+    @tipo_disco VARCHAR(10),
+    @fech_despliegue VARCHAR(MAX),
+    @nucleos INT,
+    @ID_Zona INT,
+    @estcodigo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Validación de claves foráneas
+    IF NOT EXISTS (SELECT 1 FROM estado WHERE estcodigo = @estcodigo)
+        THROW 56001, 'Código de estado inválido.', 1;
+
+    IF NOT EXISTS (SELECT 1 FROM ZONA_A WHERE ID_Zona = @ID_Zona)
+        THROW 56002, 'Código de zona inválido.', 1;
+
+    -- Inserción principal
+    INSERT INTO dbo.Servidores (
+        Nombre_Servidor, Monitoreo_PRTG, Disponibilidad, Observacion, Registro_PRTG,
+        Tipo_Equipo, OS, Espacio_Disco_GB, Criticidad_Organizacion_1, Criticidad_Organizacion_2,
+        Tipo_servicio, Ambiente_Ejecucion, Dia_Ejecucion_Serv, Hora_Serv,
+        interfaz_red, velocidad, hipervisor, numero_discos, uso_disco,
+        memoria_ram, procesador, tipo_disco, fech_despliegue, nucleos,
+        ID_Zona, estcodigo
+    )
+    VALUES (
+        @Nombre_Servidor, @Monitoreo_PRTG, @Disponibilidad, @Observacion, @Registro_PRTG,
+        @Tipo_Equipo, @OS, @Espacio_Disco_GB, @Criticidad_Organizacion_1, @Criticidad_Organizacion_2,
+        @Tipo_servicio, @Ambiente_Ejecucion, @Dia_Ejecucion_Serv, @Hora_Serv,
+        @interfaz_red, @velocidad, @hipervisor, @numero_discos, @uso_disco,
+        @memoria_ram, @procesador, @tipo_disco, @fech_despliegue, @nucleos,
+        @ID_Zona, @estcodigo
+    );
+END
+GO
+/****** Object:  StoredProcedure [dbo].[update_servidor]    Script Date: 28/8/2025 13:46:25 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[update_servidor]
+    @ID_Servidor INT,
+    @Nombre_Servidor VARCHAR(100),
+    @Monitoreo_PRTG VARCHAR(250),
+    @Disponibilidad VARCHAR(250),
+    @Observacion VARCHAR(200),
+    @Registro_PRTG VARCHAR(100),
+    @Tipo_Equipo VARCHAR(100),
+    @OS VARCHAR(200),
+    @Espacio_Disco_GB VARCHAR(100),
+    @Criticidad_Organizacion_1 INT,
+    @Criticidad_Organizacion_2 INT,
+    @Tipo_servicio VARCHAR(100),
+    @Ambiente_Ejecucion VARCHAR(100),
+    @Dia_Ejecucion_Serv VARCHAR(250),
+    @Hora_Serv VARCHAR(250),
+    @interfaz_red VARCHAR(255),
+    @velocidad VARCHAR(50),
+    @hipervisor VARCHAR(100),
+    @numero_discos INT,
+    @uso_disco VARCHAR(255),
+    @memoria_ram VARCHAR(255),
+    @procesador VARCHAR(255),
+    @tipo_disco VARCHAR(10),
+    @fech_despliegue VARCHAR(MAX),
+    @nucleos INT,
+    @ID_Zona INT,
+    @estcodigo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 🔍 Validación de existencia
+    IF NOT EXISTS (SELECT 1 FROM dbo.Servidores WHERE ID_Servidor = @ID_Servidor)
+        THROW 56010, 'Servidor no encontrado.', 1;
+
+    -- 🔍 Validación de claves foráneas
+    IF NOT EXISTS (SELECT 1 FROM dbo.estado WHERE estcodigo = @estcodigo)
+        THROW 56011, 'Código de estado inválido.', 1;
+
+    IF NOT EXISTS (SELECT 1 FROM dbo.ZONA_A WHERE ID_Zona = @ID_Zona)
+        THROW 56012, 'Código de zona inválido.', 1;
+
+    -- ✏️ Actualización completa
+    UPDATE dbo.Servidores
+    SET
+        Nombre_Servidor = @Nombre_Servidor,
+        Monitoreo_PRTG = @Monitoreo_PRTG,
+        Disponibilidad = @Disponibilidad,
+        Observacion = @Observacion,
+        Registro_PRTG = @Registro_PRTG,
+        Tipo_Equipo = @Tipo_Equipo,
+        OS = @OS,
+        Espacio_Disco_GB = @Espacio_Disco_GB,
+        Criticidad_Organizacion_1 = @Criticidad_Organizacion_1,
+        Criticidad_Organizacion_2 = @Criticidad_Organizacion_2,
+        Tipo_servicio = @Tipo_servicio,
+        Ambiente_Ejecucion = @Ambiente_Ejecucion,
+        Dia_Ejecucion_Serv = @Dia_Ejecucion_Serv,
+        Hora_Serv = @Hora_Serv,
+        interfaz_red = @interfaz_red,
+        velocidad = @velocidad,
+        hipervisor = @hipervisor,
+        numero_discos = @numero_discos,
+        uso_disco = @uso_disco,
+        memoria_ram = @memoria_ram,
+        procesador = @procesador,
+        tipo_disco = @tipo_disco,
+        fech_despliegue = @fech_despliegue,
+        nucleos = @nucleos,
+        ID_Zona = @ID_Zona,
+        estcodigo = @estcodigo
+    WHERE ID_Servidor = @ID_Servidor;
+END
+GO
