@@ -1,0 +1,283 @@
+SELECT
+  LN.NodeName AS NombreServidor,
+  CP.IPAddress,
+  CP.OSVersion,
+  LN.LastUpdate AS UltimaConexionAgenteServidor,
+
+  -- Producto instalado (nombre legible)
+  CASE PP.ProductCode
+    WHEN 'ENDPOINTSECURITY' THEN 'Endpoint Security Platform'
+    WHEN 'THREATPREVENTION' THEN 'Threat Prevention'
+    WHEN 'ADAPTIVETHREATPROTECTION' THEN 'Adaptive Threat Protection'
+    WHEN 'EPOAGENT3000' THEN 'McAfee Agent'
+    WHEN 'VIRUSCAN8800' THEN 'VirusScan Enterprise'
+    WHEN 'DATREP' THEN 'DAT Reputation'
+    ELSE PP.ProductCode
+  END AS NombreProducto,
+
+  PP.ProductCode AS CodigoProducto,
+  PP.ProductVersion AS VersionProducto,
+  PP.DATVer AS VersionDAT,
+  PP.DATDate AS FechaDAT,
+  PP.LastInstalled AS FechaUltimaInstalacion,
+
+  -- Core de datos
+  PV.verProductMajor AS CoreMajor,
+  PV.verProductMinor AS CoreMinor,
+  PV.verProductRevision AS CoreRevision,
+  PV.verProductBuild AS CoreBuild,
+
+  -- Último análisis
+  MAX(EV.DetectedUTC) AS FechaUltimoAnalisis,
+  MAX(EV.ThreatName) AS UltimaAmenazaDetectada,
+  MAX(EV.ThreatActionTaken) AS AccionTomada,
+
+  -- Reglas de firewall
+  MAX(PSV.SettingName) AS NombreReglaFirewall,
+  MAX(PSV.SettingValue) AS ValorReglaFirewall,
+
+  -- Eventos del producto
+  MAX(PE.Type) AS TipoAccionProducto,
+  MAX(PE.DetectedUTC) AS FechaNotificacionProducto
+
+FROM
+  [UIOWSQL05\MSSQLTI].[ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOLeafNodeMT] LN
+  LEFT JOIN [UIOWSQL05\MSSQLTI].[ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOComputerPropertiesMT] CP ON LN.AutoID = CP.ParentID
+  LEFT JOIN [UIOWSQL05\MSSQLTI].[ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOProductPropertiesMT] PP ON LN.AutoID = PP.ParentID
+  LEFT JOIN [UIOWSQL05\MSSQLTI].[ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOProductVersionsMT] PV ON PP.AutoID = PV.ParentID
+  LEFT JOIN [UIOWSQL05\MSSQLTI].[ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOEventsMT] EV ON LN.AgentGUID = EV.AgentGUID
+    AND (EV.ThreatName LIKE '%Scan%' OR EV.ThreatType LIKE '%Scan%')
+  LEFT JOIN [UIOWSQL05\MSSQLTI].[ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOPolicySettingValuesMT] PSV ON PSV.SettingName LIKE '%Firewall%'
+  LEFT JOIN [UIOWSQL05\MSSQLTI].[ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOProductEventsMT] PE ON LN.AgentGUID = PE.AgentGUID AND PP.ProductCode = PE.ProductCode
+
+GROUP BY
+  LN.NodeName, CP.IPAddress, CP.OSVersion, LN.LastUpdate,
+  PP.ProductCode, PP.ProductVersion, PP.DATVer, PP.DATDate, PP.LastInstalled,
+  PV.verProductMajor, PV.verProductMinor, PV.verProductRevision, PV.verProductBuild
+
+ORDER BY
+  LN.LastUpdate DESC;
+
+
+  ------------------------------------------------------------------------------------------------------------------------
+  -- Crear tabla temporal
+IF OBJECT_ID('tempdb..#DatosTrex') IS NOT NULL DROP TABLE #DatosTrex;
+
+SELECT
+  LN.NodeName AS NombreServidor,
+  CP.IPAddress,
+  CP.OSVersion,
+  LN.LastUpdate AS UltimaConexionAgenteServidor,
+
+  CASE PP.ProductCode
+    WHEN 'ENDPOINTSECURITY' THEN 'Endpoint Security Platform'
+    WHEN 'THREATPREVENTION' THEN 'Threat Prevention'
+    WHEN 'ADAPTIVETHREATPROTECTION' THEN 'Adaptive Threat Protection'
+    WHEN 'EPOAGENT3000' THEN 'McAfee Agent'
+    WHEN 'VIRUSCAN8800' THEN 'VirusScan Enterprise'
+    WHEN 'DATREP' THEN 'DAT Reputation'
+    ELSE PP.ProductCode
+  END AS NombreProducto,
+
+  PP.ProductCode AS CodigoProducto,
+  PP.ProductVersion AS VersionProducto,
+  PP.DATVer AS VersionDAT,
+  PP.DATDate AS FechaDAT,
+  PP.LastInstalled AS FechaUltimaInstalacion,
+
+  PV.verProductMajor AS CoreMajor,
+  PV.verProductMinor AS CoreMinor,
+  PV.verProductRevision AS CoreRevision,
+  PV.verProductBuild AS CoreBuild,
+
+  MAX(EV.DetectedUTC) AS FechaUltimoAnalisis,
+  MAX(EV.ThreatName) AS UltimaAmenazaDetectada,
+  MAX(EV.ThreatActionTaken) AS AccionTomada,
+
+  MAX(PSV.SettingName) AS NombreReglaFirewall,
+  MAX(PSV.SettingValue) AS ValorReglaFirewall,
+
+  MAX(PE.Type) AS TipoAccionProducto,
+  MAX(PE.DetectedUTC) AS FechaNotificacionProducto
+
+INTO #DatosTrex
+FROM
+  [UIOWSQL05\MSSQLTI].[ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOLeafNodeMT] LN
+  LEFT JOIN [UIOWSQL05\MSSQLTI].[ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOComputerPropertiesMT] CP ON LN.AutoID = CP.ParentID
+  LEFT JOIN [UIOWSQL05\MSSQLTI].[ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOProductPropertiesMT] PP ON LN.AutoID = PP.ParentID
+  LEFT JOIN [UIOWSQL05\MSSQLTI].[ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOProductVersionsMT] PV ON PP.AutoID = PV.ParentID
+  LEFT JOIN [UIOWSQL05\MSSQLTI].[ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOEventsMT] EV ON LN.AgentGUID = EV.AgentGUID
+    AND (EV.ThreatName LIKE '%Scan%' OR EV.ThreatType LIKE '%Scan%')
+  LEFT JOIN [UIOWSQL05\MSSQLTI].[ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOPolicySettingValuesMT] PSV ON PSV.SettingName LIKE '%Firewall%'
+  LEFT JOIN [UIOWSQL05\MSSQLTI].[ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOProductEventsMT] PE ON LN.AgentGUID = PE.AgentGUID AND PP.ProductCode = PE.ProductCode
+
+GROUP BY
+  LN.NodeName, CP.IPAddress, CP.OSVersion, LN.LastUpdate,
+  PP.ProductCode, PP.ProductVersion, PP.DATVer, PP.DATDate, PP.LastInstalled,
+  PV.verProductMajor, PV.verProductMinor, PV.verProductRevision, PV.verProductBuild;
+
+
+
+  SELECT TOP 10 * FROM [ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOEventsMT];
+  ----------------------------------------------------------------------------------
+  ------------------------------------------------------------------------------------
+
+
+  SELECT *
+INTO #DatosTrex
+FROM OPENQUERY([UIOWSQL05\MSSQLTI], '
+  SELECT
+    LN.NodeName AS NombreServidor,
+    CP.IPAddress,
+    CP.OSVersion,
+    LN.LastUpdate AS UltimaConexionAgenteServidor,
+
+    CASE PP.ProductCode
+      WHEN ''ENDPOINTSECURITY'' THEN ''Endpoint Security Platform''
+      WHEN ''THREATPREVENTION'' THEN ''Threat Prevention''
+      WHEN ''ADAPTIVETHREATPROTECTION'' THEN ''Adaptive Threat Protection''
+      WHEN ''EPOAGENT3000'' THEN ''McAfee Agent''
+      WHEN ''VIRUSCAN8800'' THEN ''VirusScan Enterprise''
+      WHEN ''DATREP'' THEN ''DAT Reputation''
+      ELSE PP.ProductCode
+    END AS NombreProducto,
+
+    PP.ProductCode AS CodigoProducto,
+    PP.ProductVersion AS VersionProducto,
+    PP.DATVer AS VersionDAT,
+    PP.DATDate AS FechaDAT,
+    PP.LastInstalled AS FechaUltimaInstalacion,
+
+    PV.verProductMajor AS CoreMajor,
+    PV.verProductMinor AS CoreMinor,
+    PV.verProductRevision AS CoreRevision,
+    PV.verProductBuild AS CoreBuild,
+
+    MAX(EV.DetectedUTC) AS FechaUltimoAnalisis,
+    MAX(EV.ThreatName) AS UltimaAmenazaDetectada,
+    MAX(EV.ThreatActionTaken) AS AccionTomada,
+
+    MAX(PSV.SettingName) AS NombreReglaFirewall,
+    MAX(PSV.SettingValue) AS ValorReglaFirewall,
+
+    MAX(PE.Type) AS TipoAccionProducto,
+    MAX(PE.DetectedUTC) AS FechaNotificacionProducto
+
+  FROM
+    [ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOLeafNodeMT] LN
+    LEFT JOIN [ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOComputerPropertiesMT] CP ON LN.AutoID = CP.ParentID
+    LEFT JOIN [ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOProductPropertiesMT] PP ON LN.AutoID = PP.ParentID
+    LEFT JOIN [ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOProductVersionsMT] PV ON PP.AutoID = PV.ParentID
+    LEFT JOIN [ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOEventsMT] EV ON LN.AgentGUID = EV.AgentGUID
+      AND (EV.ThreatName LIKE ''%Scan%'' OR EV.ThreatType LIKE ''%Scan%'')
+    LEFT JOIN [ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOPolicySettingValuesMT] PSV ON PSV.SettingName LIKE ''%Firewall%''
+    LEFT JOIN [ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOProductEventsMT] PE ON LN.AgentGUID = PE.AgentGUID AND PP.ProductCode = PE.ProductCode
+
+  GROUP BY
+    LN.NodeName, CP.IPAddress, CP.OSVersion, LN.LastUpdate,
+    PP.ProductCode, PP.ProductVersion, PP.DATVer, PP.DATDate, PP.LastInstalled,
+    PV.verProductMajor, PV.verProductMinor, PV.verProductRevision, PV.verProductBuild
+
+  ORDER BY
+    LN.LastUpdate DESC
+');
+
+
+;
+
+
+---------------------------------------------------------------------------
+SELECT *
+INTO #DatosTrex
+FROM OPENQUERY([UIOWSQL05\MSSQLTI], '
+  SELECT
+    LN.NodeName AS NombreServidor,
+    CP.IPAddress,
+    CP.OSVersion,
+    LN.LastUpdate AS UltimaConexionAgenteServidor,
+
+    CASE PP.ProductCode
+      WHEN ''ENDPOINTSECURITY'' THEN ''Endpoint Security Platform''
+      WHEN ''THREATPREVENTION'' THEN ''Threat Prevention''
+      WHEN ''ADAPTIVETHREATPROTECTION'' THEN ''Adaptive Threat Protection''
+      WHEN ''EPOAGENT3000'' THEN ''McAfee Agent''
+      WHEN ''VIRUSCAN8800'' THEN ''VirusScan Enterprise''
+      WHEN ''DATREP'' THEN ''DAT Reputation''
+      ELSE PP.ProductCode
+    END AS NombreProducto,
+
+    PP.ProductCode AS CodigoProducto,
+    PP.ProductVersion AS VersionProducto,
+    PP.DATVer AS VersionDAT,
+    PP.DATDate AS FechaDAT,
+    PP.LastInstalled AS FechaUltimaInstalacion,
+
+    PV.verProductMajor AS verProductMajor,
+    PV.verProductMinor AS verProductMinor,
+    PV.verProductRevision AS verProductRevision,
+    PV.verProductBuild AS verProductBuild,
+
+    MAX(EV.DetectedUTC) AS FechaUltimoAnalisis,
+    MAX(EV.ThreatName) AS UltimaAmenazaDetectada,
+    MAX(EV.ThreatActionTaken) AS AccionTomada,
+
+    MAX(PSV.SettingName) AS NombreReglaFirewall,
+    MAX(PSV.SettingValue) AS ValorReglaFirewall,
+
+    MAX(PE.Type) AS TipoAccionProducto,
+    MAX(PE.DetectedUTC) AS FechaNotificacionProducto
+
+  FROM
+    [ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOLeafNodeMT] LN
+    LEFT JOIN [ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOComputerPropertiesMT] CP ON LN.AutoID = CP.ParentID
+    LEFT JOIN [ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOProductPropertiesMT] PP ON LN.AutoID = PP.ParentID
+    LEFT JOIN [ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOProductVersionsMT] PV ON PP.AutoID = PV.ParentID
+    LEFT JOIN [ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOEventsMT] EV ON LN.AgentGUID = EV.AgentGUID
+      AND (EV.ThreatName LIKE ''%Scan%'' OR EV.ThreatType LIKE ''%Scan%'')
+    LEFT JOIN [ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOPolicySettingValuesMT] PSV ON PSV.SettingName LIKE ''%Firewall%''
+    LEFT JOIN [ePO_SPQ-MCAEPOSRVP1].[dbo].[EPOProductEventsMT] PE ON LN.AgentGUID = PE.AgentGUID AND PP.ProductCode = PE.ProductCode
+
+  GROUP BY
+    LN.NodeName, CP.IPAddress, CP.OSVersion, LN.LastUpdate,
+    PP.ProductCode, PP.ProductVersion, PP.DATVer, PP.DATDate, PP.LastInstalled,
+    PV.verProductMajor, PV.verProductMinor, PV.verProductRevision, PV.verProductBuild
+
+  ORDER BY
+    LN.LastUpdate DESC
+');
+
+
+IF OBJECT_ID('tempdb..#DatosTrex') IS NOT NULL
+    DROP TABLE #DatosTrex;
+------------------------------------------------------------------------------------
+INSERT INTO dbo.Seguridad_Servidores (
+  NombreServidor, IPAddress, OSVersion, UltimaConexionAgenteServidor,
+  NombreProducto, CodigoProducto, VersionProducto, VersionDAT, FechaDAT, FechaUltimaInstalacion,
+  verProductMajor, verProductMinor, verProductRevision, verProductBuild,
+  FechaUltimoAnalisis, UltimaAmenazaDetectada, AccionTomada,
+  NombreReglaFirewall, ValorReglaFirewall,
+  TipoAccionProducto, FechaNotificacionProducto
+)
+SELECT
+  NombreServidor,
+  IPAddress,
+  OSVersion,
+  TRY_CONVERT(DATETIME, NULLIF(LTRIM(RTRIM(UltimaConexionAgenteServidor)), '0')),
+  NombreProducto,
+  CodigoProducto,
+  VersionProducto,
+  VersionDAT,
+  TRY_CONVERT(DATETIME, NULLIF(LTRIM(RTRIM(FechaDAT)), '0')),
+  TRY_CONVERT(DATETIME, NULLIF(LTRIM(RTRIM(FechaUltimaInstalacion)), '0')),
+  verProductMajor,
+  verProductMinor,
+  verProductRevision,
+  verProductBuild,
+  TRY_CONVERT(DATETIME, NULLIF(LTRIM(RTRIM(FechaUltimoAnalisis)), '0')),
+  UltimaAmenazaDetectada,
+  AccionTomada,
+  NombreReglaFirewall,
+  ValorReglaFirewall,
+  TipoAccionProducto,
+  TRY_CONVERT(DATETIME, NULLIF(LTRIM(RTRIM(FechaNotificacionProducto)), '0'))
+FROM #DatosTrex;
