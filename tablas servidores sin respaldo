@@ -1,0 +1,217 @@
+USE [MSQCATPRO_MA]
+GO
+/****** Object:  Table [dbo].[BaseDatos]    Script Date: 28/8/2025 13:53:57 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[BaseDatos](
+	[ID_Base] [int] IDENTITY(1,1) NOT NULL,
+	[Nombre_Base] [varchar](100) NOT NULL,
+	[Nombre_Instancia] [varchar](100) NULL,
+	[Tipo_Base] [varchar](50) NULL,
+	[Descripcion] [varchar](300) NULL,
+	[empcodigo] [int] NOT NULL,
+	[ID_Servidor] [int] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID_Base] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[estado]    Script Date: 28/8/2025 13:53:57 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[estado](
+	[estcodigo] [int] NOT NULL,
+	[estnombre] [varchar](50) NOT NULL,
+	[estactivo] [int] NULL,
+	[estdescripcion] [varchar](500) NULL,
+	[estobservaciones] [varchar](500) NULL,
+ CONSTRAINT [pk_estado] PRIMARY KEY NONCLUSTERED 
+(
+	[estcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[IP]    Script Date: 28/8/2025 13:53:57 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[IP](
+	[ID_IP] [int] IDENTITY(1,1) NOT NULL,
+	[Direccion_IP] [varchar](250) NOT NULL,
+	[Estado_Ip] [bit] NOT NULL,
+	[Gateway] [varchar](250) NULL,
+	[Mascara_Subred] [varchar](100) NULL,
+	[Rango] [varchar](250) NULL,
+	[DNS1] [varchar](250) NULL,
+	[DNS2] [varchar](250) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID_IP] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Seguridad_Servidores]    Script Date: 28/8/2025 13:53:57 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Seguridad_Servidores](
+	[NombreServidor] [nvarchar](255) NULL,
+	[IPAddress] [nvarchar](50) NULL,
+	[OSVersion] [nvarchar](255) NULL,
+	[UltimaConexionAgenteServidor] [datetime] NULL,
+	[NombreProducto] [nvarchar](255) NULL,
+	[CodigoProducto] [nvarchar](100) NULL,
+	[VersionProducto] [nvarchar](100) NULL,
+	[VersionDAT] [nvarchar](50) NULL,
+	[FechaDAT] [datetime] NULL,
+	[FechaUltimaInstalacion] [datetime] NULL,
+	[verProductMajor] [int] NULL,
+	[verProductMinor] [int] NULL,
+	[verProductRevision] [int] NULL,
+	[verProductBuild] [int] NULL,
+	[FechaUltimoAnalisis] [datetime] NULL,
+	[UltimaAmenazaDetectada] [nvarchar](255) NULL,
+	[AccionTomada] [nvarchar](255) NULL,
+	[NombreReglaFirewall] [nvarchar](255) NULL,
+	[ValorReglaFirewall] [nvarchar](max) NULL,
+	[TipoAccionProducto] [nvarchar](100) NULL,
+	[FechaNotificacionProducto] [datetime] NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Servidor_Aplicaciones]    Script Date: 28/8/2025 13:53:57 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Servidor_Aplicaciones](
+	[ID_Servidor_Aplicacion] [int] IDENTITY(1,1) NOT NULL,
+	[ID_Servidor] [int] NOT NULL,
+	[aplcodigo] [int] NOT NULL,
+	[Fecha_Inicio] [date] NULL,
+	[Fecha_Fin] [date] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID_Servidor_Aplicacion] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Servidor_IP]    Script Date: 28/8/2025 13:53:57 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Servidor_IP](
+	[ID_Servidor_IP] [int] IDENTITY(1,1) NOT NULL,
+	[ID_Servidor] [int] NOT NULL,
+	[ID_IP] [int] NOT NULL,
+	[Host_Name] [varchar](250) NOT NULL,
+	[Fecha_Creacion] [datetime] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID_Servidor_IP] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Servidores]    Script Date: 28/8/2025 13:53:57 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Servidores](
+	[ID_Servidor] [int] IDENTITY(1,1) NOT NULL,
+	[Nombre_Servidor] [varchar](100) NULL,
+	[Monitoreo_PRTG] [varchar](250) NULL,
+	[Disponibilidad] [varchar](250) NULL,
+	[Observacion] [varchar](200) NULL,
+	[Registro_PRTG] [varchar](100) NULL,
+	[Tipo_Equipo] [varchar](100) NULL,
+	[OS] [varchar](200) NULL,
+	[Espacio_Disco_GB] [varchar](100) NULL,
+	[Criticidad_Organizacion_1] [int] NULL,
+	[Criticidad_Organizacion_2] [int] NULL,
+	[Tipo_servicio] [varchar](100) NULL,
+	[Ambiente_Ejecucion] [varchar](100) NULL,
+	[Dia_Ejecucion_Serv] [varchar](250) NULL,
+	[Hora_Serv] [varchar](250) NULL,
+	[interfaz_red] [varchar](255) NULL,
+	[velocidad] [varchar](50) NULL,
+	[hipervisor] [varchar](100) NULL,
+	[numero_discos] [int] NULL,
+	[uso_disco] [varchar](255) NULL,
+	[memoria_ram] [varchar](255) NULL,
+	[procesador] [varchar](255) NULL,
+	[tipo_disco] [varchar](10) NULL,
+	[fech_despliegue] [varchar](max) NULL,
+	[nucleos] [int] NULL,
+	[ID_Zona] [int] NULL,
+	[estcodigo] [int] NULL,
+ CONSTRAINT [PK__ServNew__F3551DC4DC78E2D3] PRIMARY KEY CLUSTERED 
+(
+	[ID_Servidor] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ZONA_A]    Script Date: 28/8/2025 13:53:57 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ZONA_A](
+	[ID_Zona] [int] IDENTITY(1,1) NOT NULL,
+	[Zona] [varchar](100) NULL,
+	[Provincia] [nvarchar](255) NULL,
+	[Ciudad] [nvarchar](255) NULL,
+	[Canton] [nvarchar](255) NULL,
+	[Locacion] [nvarchar](255) NULL,
+	[Ubicacion] [nvarchar](255) NULL,
+	[VCenter] [varchar](100) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID_Zona] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[IP] ADD  DEFAULT ((1)) FOR [Estado_Ip]
+GO
+ALTER TABLE [dbo].[BaseDatos]  WITH CHECK ADD  CONSTRAINT [FK_BaseDatos_Servidores] FOREIGN KEY([ID_Servidor])
+REFERENCES [dbo].[Servidores] ([ID_Servidor])
+GO
+ALTER TABLE [dbo].[BaseDatos] CHECK CONSTRAINT [FK_BaseDatos_Servidores]
+GO
+ALTER TABLE [dbo].[Servidor_Aplicaciones]  WITH CHECK ADD  CONSTRAINT [FK_ServAp_ServNew] FOREIGN KEY([ID_Servidor])
+REFERENCES [dbo].[Servidores] ([ID_Servidor])
+GO
+ALTER TABLE [dbo].[Servidor_Aplicaciones] CHECK CONSTRAINT [FK_ServAp_ServNew]
+GO
+ALTER TABLE [dbo].[Servidor_Aplicaciones]  WITH CHECK ADD  CONSTRAINT [FK_ServidorAplicaciones_Aplicativo] FOREIGN KEY([aplcodigo])
+REFERENCES [dbo].[aplicativo] ([aplcodigo])
+GO
+ALTER TABLE [dbo].[Servidor_Aplicaciones] CHECK CONSTRAINT [FK_ServidorAplicaciones_Aplicativo]
+GO
+ALTER TABLE [dbo].[Servidor_IP]  WITH CHECK ADD  CONSTRAINT [FK_IP] FOREIGN KEY([ID_IP])
+REFERENCES [dbo].[IP] ([ID_IP])
+GO
+ALTER TABLE [dbo].[Servidor_IP] CHECK CONSTRAINT [FK_IP]
+GO
+ALTER TABLE [dbo].[Servidor_IP]  WITH CHECK ADD  CONSTRAINT [FK_Servidor] FOREIGN KEY([ID_Servidor])
+REFERENCES [dbo].[Servidores] ([ID_Servidor])
+GO
+ALTER TABLE [dbo].[Servidor_IP] CHECK CONSTRAINT [FK_Servidor]
+GO
+ALTER TABLE [dbo].[Servidores]  WITH CHECK ADD  CONSTRAINT [FK_ServNew_estado] FOREIGN KEY([estcodigo])
+REFERENCES [dbo].[estado] ([estcodigo])
+GO
+ALTER TABLE [dbo].[Servidores] CHECK CONSTRAINT [FK_ServNew_estado]
+GO
+ALTER TABLE [dbo].[Servidores]  WITH CHECK ADD  CONSTRAINT [FK_ServNew_ZONA_A] FOREIGN KEY([ID_Zona])
+REFERENCES [dbo].[ZONA_A] ([ID_Zona])
+GO
+ALTER TABLE [dbo].[Servidores] CHECK CONSTRAINT [FK_ServNew_ZONA_A]
+GO
