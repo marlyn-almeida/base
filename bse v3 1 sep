@@ -1,0 +1,2442 @@
+USE [MSQCATPRO_MA]
+GO
+/****** Object:  Table [dbo].[Activo_Fisico]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Activo_Fisico](
+	[id_activo_fisico] [int] IDENTITY(1,1) NOT NULL,
+	[Naturaleza] [nvarchar](50) NULL,
+	[Activo] [nvarchar](50) NULL,
+	[Gestion_TIC] [nvarchar](50) NULL,
+	[Descripcion_Activo] [nvarchar](max) NULL,
+	[Etiqueta_Activo_Fijo] [nvarchar](150) NULL,
+	[Codigo_activo_Fijo_EBS] [nvarchar](50) NULL,
+	[Centro_Costo] [nvarchar](50) NULL,
+	[Fabricante] [nvarchar](100) NULL,
+	[Modelo] [nvarchar](150) NULL,
+	[Serie] [nvarchar](100) NULL,
+	[Num_Contrato] [nvarchar](150) NULL,
+	[Fecha_Recepcion] [datetime] NULL,
+	[Caducidad_Garantia] [datetime] NULL,
+	[ID_Zona] [int] NULL,
+	[Precio_Compra] [decimal](18, 2) NULL,
+	[Ubicacion_Desc] [nvarchar](max) NULL,
+	[Estado] [nvarchar](50) NULL,
+ CONSTRAINT [PK_Activo_Fisico] PRIMARY KEY CLUSTERED 
+(
+	[id_activo_fisico] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[aplicativo]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[aplicativo](
+	[aplcodigo] [int] IDENTITY(1,1) NOT NULL,
+	[cricodigo] [int] NOT NULL,
+	[tipccodigo] [int] NOT NULL,
+	[hercodigo] [int] NOT NULL,
+	[tipaccesocodigo] [int] NOT NULL,
+	[tipcodigo] [int] NOT NULL,
+	[tfdcodigo] [int] NOT NULL,
+	[estcodigo] [int] NOT NULL,
+	[intcodigo] [int] NOT NULL,
+	[fuecodigo] [int] NOT NULL,
+	[descodigo] [int] NOT NULL,
+	[concodigo] [int] NOT NULL,
+	[aplnombrecorto] [varchar](50) NOT NULL,
+	[aplnombrecompleto] [varchar](250) NOT NULL,
+	[aplregistro] [varchar](50) NULL,
+	[aplfechaadquisicion] [datetime] NULL,
+	[aplfechaimplementacion] [datetime] NULL,
+	[aplproveedor] [varchar](100) NULL,
+	[aplversion] [varchar](100) NULL,
+	[aplanocreacion] [int] NULL,
+	[aplnumerousuario] [int] NULL,
+	[apladministradorusuario] [varchar](200) NULL,
+	[aplvalorestimado] [varchar](100) NULL,
+	[apltransaccionesmensuales] [varchar](50) NULL,
+	[aplfechaactualizacion] [datetime] NULL,
+	[aplsla] [varchar](100) NULL,
+	[aplrutadoctecnico] [varchar](1000) NULL,
+	[aplenlace] [varchar](1200) NULL,
+	[apltiemporeinicio] [varchar](200) NULL,
+	[aplhorareinicio] [varchar](200) NULL,
+	[aplactivo] [int] NULL,
+	[apldescripcion] [varchar](750) NULL,
+	[aplobservaciones] [varchar](800) NULL,
+	[aplhsoportevigente] [varchar](20) NULL,
+	[aplhttps] [int] NULL,
+	[aplarearequirente] [varchar](300) NULL,
+	[aplsubarea] [varchar](300) NULL,
+	[aplproceso] [varchar](200) NULL,
+ CONSTRAINT [pk_aplicativo] PRIMARY KEY NONCLUSTERED 
+(
+	[aplcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[area]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[area](
+	[arecodigo] [int] NOT NULL,
+	[arenombre] [varchar](100) NOT NULL,
+	[areactivo] [int] NULL,
+	[aredescripcion] [varchar](500) NULL,
+	[areobservaciones] [varchar](500) NULL,
+	[aretipo] [varchar](50) NOT NULL,
+ CONSTRAINT [pk_area] PRIMARY KEY NONCLUSTERED 
+(
+	[arecodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[areaempleado]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[areaempleado](
+	[empcodigo] [int] NOT NULL,
+	[arecodigo] [int] NOT NULL,
+ CONSTRAINT [pk_areaempleado] PRIMARY KEY CLUSTERED 
+(
+	[empcodigo] ASC,
+	[arecodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[auditoria]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[auditoria](
+	[audcodigo] [int] NOT NULL,
+	[audtablaafectada] [varchar](50) NULL,
+	[audtipotransaccion] [varchar](1) NULL,
+	[audfecha] [datetime] NULL,
+	[audip] [varchar](20) NULL,
+	[audusuario] [varchar](50) NULL,
+	[audidentificacion] [varchar](50) NULL,
+	[audsistema] [varchar](50) NULL,
+	[audperfil] [varchar](50) NULL,
+	[audmenu] [varchar](50) NULL,
+	[audcampoafectado] [varchar](30) NULL,
+	[audaccion] [varchar](1000) NULL,
+	[audvaloranterior] [varchar](500) NULL,
+	[audvalornuevo] [varchar](500) NULL,
+	[audregistro] [varchar](100) NULL,
+	[audmoduloafectado] [varchar](50) NULL,
+	[audclaveprimaria1] [varchar](100) NULL,
+	[audclaveprimaria2] [varchar](100) NULL,
+	[audclaveprimaria3] [varchar](100) NULL,
+	[audclaveprimaria4] [varchar](100) NULL,
+	[audesquema] [varchar](30) NULL,
+	[audgrupoad] [varchar](50) NULL,
+	[audactivo] [int] NULL,
+	[auddescripcion] [varchar](500) NULL,
+	[audobservaciones] [varchar](500) NULL,
+ CONSTRAINT [pk_auditoria] PRIMARY KEY NONCLUSTERED 
+(
+	[audcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[BaseDatos]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[BaseDatos](
+	[ID_Base] [int] IDENTITY(1,1) NOT NULL,
+	[Nombre_Base] [varchar](100) NOT NULL,
+	[Nombre_Instancia] [varchar](100) NULL,
+	[Tipo_Base] [varchar](50) NULL,
+	[Descripcion] [varchar](300) NULL,
+	[empcodigo] [int] NOT NULL,
+	[ID_Servidor] [int] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID_Base] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[contrato_aplicativo]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[contrato_aplicativo](
+	[contcodigo] [int] IDENTITY(1,1) NOT NULL,
+	[aplcodigo] [int] NOT NULL,
+	[conttipo] [varchar](50) NOT NULL,
+	[contdescripcion] [varchar](300) NULL,
+	[contproveedor] [varchar](100) NULL,
+	[contregistro] [varchar](50) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[contcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[control]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[control](
+	[concodigo] [int] NOT NULL,
+	[connombre] [nvarchar](500) NOT NULL,
+	[conactivo] [int] NULL,
+	[condescripcion] [nvarchar](500) NULL,
+	[conobservacion] [nvarchar](500) NULL,
+ CONSTRAINT [pk_control] PRIMARY KEY NONCLUSTERED 
+(
+	[concodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[criticidad]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[criticidad](
+	[cricodigo] [int] NOT NULL,
+	[crinombre] [varchar](50) NOT NULL,
+	[criactivo] [int] NULL,
+	[cridescripcion] [varchar](500) NULL,
+	[criobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_criticidad] PRIMARY KEY NONCLUSTERED 
+(
+	[cricodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[desarrollo]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[desarrollo](
+	[descodigo] [int] NOT NULL,
+	[desnombre] [varchar](50) NOT NULL,
+	[desactivo] [int] NULL,
+	[desdescripcion] [varchar](500) NULL,
+	[desobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_desarrollo] PRIMARY KEY NONCLUSTERED 
+(
+	[descodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[empleado]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[empleado](
+	[empcodigo] [int] IDENTITY(1,1) NOT NULL,
+	[empnombres] [varchar](100) NOT NULL,
+	[empapellidopaterno] [varchar](100) NOT NULL,
+	[empapellidomaterno] [varchar](100) NULL,
+	[empcedula] [varchar](40) NULL,
+	[empemail] [varchar](100) NULL,
+	[empcelular] [varchar](20) NULL,
+	[emptiposangre] [varchar](5) NULL,
+	[empsexo] [char](1) NULL,
+	[empfechainicio] [datetime] NULL,
+	[empfechacreacion] [datetime] NULL,
+	[empusuario] [varchar](100) NULL,
+	[empcontrasena] [varchar](100) NULL,
+	[empactivo] [int] NULL,
+	[empdescripcion] [varchar](500) NULL,
+	[empobservaciones] [varchar](500) NULL,
+ CONSTRAINT [pk_empleado] PRIMARY KEY NONCLUSTERED 
+(
+	[empcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Empleado_Activo]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Empleado_Activo](
+	[ID_Empleado_Activo] [int] IDENTITY(1,1) NOT NULL,
+	[EmpCodigo] [int] NOT NULL,
+	[ID_Activo_Fisico] [int] NOT NULL,
+	[Fecha_Asignacion] [datetime] NULL,
+	[Fecha_Desasignacion] [datetime] NULL,
+	[Observacion] [nvarchar](500) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID_Empleado_Activo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[estado]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[estado](
+	[estcodigo] [int] NOT NULL,
+	[estnombre] [varchar](50) NOT NULL,
+	[estactivo] [int] NULL,
+	[estdescripcion] [varchar](500) NULL,
+	[estobservaciones] [varchar](500) NULL,
+ CONSTRAINT [pk_estado] PRIMARY KEY NONCLUSTERED 
+(
+	[estcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Frecuencia_Respaldo]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Frecuencia_Respaldo](
+	[ID_Frecuencia] [int] IDENTITY(1,1) NOT NULL,
+	[Tipo_Frecuencia] [varchar](10) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID_Frecuencia] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+UNIQUE NONCLUSTERED 
+(
+	[Tipo_Frecuencia] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[fuente]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[fuente](
+	[fuecodigo] [int] NOT NULL,
+	[fuenombre] [varchar](50) NOT NULL,
+	[fueactivo] [int] NULL,
+	[fuedescripcion] [varchar](500) NULL,
+	[fueobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_fuente] PRIMARY KEY NONCLUSTERED 
+(
+	[fuecodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[herramienta]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[herramienta](
+	[hercodigo] [int] NOT NULL,
+	[hernombre] [varchar](50) NOT NULL,
+	[heractivo] [int] NULL,
+	[herdescripcion] [varchar](500) NULL,
+	[herobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_herramienta] PRIMARY KEY NONCLUSTERED 
+(
+	[hercodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[IP]    Script Date: 1/9/2025 14:33:41 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[IP](
+	[ID_IP] [int] IDENTITY(1,1) NOT NULL,
+	[Direccion_IP] [varchar](250) NOT NULL,
+	[Estado_Ip] [bit] NOT NULL,
+	[Gateway] [varchar](250) NULL,
+	[Mascara_Subred] [varchar](100) NULL,
+	[Rango] [varchar](250) NULL,
+	[DNS1] [varchar](250) NULL,
+	[DNS2] [varchar](250) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID_IP] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[perfil]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[perfil](
+	[percodigo] [int] NOT NULL,
+	[pernombre] [varchar](100) NOT NULL,
+	[peractivo] [int] NULL,
+	[perdescripcion] [varchar](500) NULL,
+	[perobservaciones] [nvarchar](500) NULL,
+ CONSTRAINT [pk_perfil] PRIMARY KEY NONCLUSTERED 
+(
+	[percodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[perfilempleado]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[perfilempleado](
+	[percodigo] [int] NOT NULL,
+	[empcodigo] [int] NOT NULL,
+ CONSTRAINT [pk_perfilempleado] PRIMARY KEY CLUSTERED 
+(
+	[percodigo] ASC,
+	[empcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Respaldo]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Respaldo](
+	[ID_Respaldo] [int] IDENTITY(1,1) NOT NULL,
+	[ID_Servidor] [int] NOT NULL,
+	[ID_Frecuencia] [int] NOT NULL,
+	[es_historico] [bit] NULL,
+	[estado_respaldo] [varchar](20) NULL,
+	[tiempo_ejecucion] [varchar](50) NULL,
+	[resultado_ejecucion] [varchar](500) NULL,
+	[respaldo_completo] [bit] NULL,
+	[estcodigo] [int] NULL,
+	[fecha_respaldo] [datetime] NULL,
+	[ID_Tipo_Respaldo] [int] NOT NULL,
+	[tiempo_Respaldo_Serv] [varchar](100) NULL,
+	[ruta_respaldo_Granular_Serv] [varchar](200) NULL,
+	[Periodo_Retencion_Serv] [varchar](100) NULL,
+	[Doble_Copia_Serv] [varchar](250) NULL,
+	[Dia_Ejecucion_Almac] [varchar](250) NULL,
+	[Hora_Almac] [varchar](250) NULL,
+	[ruta_respaldo_Granular_Almac] [varchar](200) NULL,
+	[Periodo_Retencion_Almac] [varchar](100) NULL,
+	[Doble_Copia_Almac] [varchar](100) NULL,
+	[antivirus_activo] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID_Respaldo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[rol]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[rol](
+	[rolcodigo] [int] NOT NULL,
+	[rolnombre] [varchar](100) NOT NULL,
+	[rolactivo] [int] NULL,
+	[roldescripcion] [varchar](500) NULL,
+	[rolobservaciones] [varchar](500) NULL,
+ CONSTRAINT [pk_rol] PRIMARY KEY NONCLUSTERED 
+(
+	[rolcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[rolempleado]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[rolempleado](
+	[empcodigo] [int] NOT NULL,
+	[rolcodigo] [int] NOT NULL,
+	[fechainicio] [datetime] NULL,
+	[fechafin] [datetime] NULL,
+ CONSTRAINT [pk_rolempleado] PRIMARY KEY CLUSTERED 
+(
+	[empcodigo] ASC,
+	[rolcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Seguridad_Servidores]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Seguridad_Servidores](
+	[NombreServidor] [nvarchar](255) NULL,
+	[IPAddress] [nvarchar](50) NULL,
+	[OSVersion] [nvarchar](255) NULL,
+	[UltimaConexionAgenteServidor] [datetime] NULL,
+	[NombreProducto] [nvarchar](255) NULL,
+	[CodigoProducto] [nvarchar](100) NULL,
+	[VersionProducto] [nvarchar](100) NULL,
+	[VersionDAT] [nvarchar](50) NULL,
+	[FechaDAT] [datetime] NULL,
+	[FechaUltimaInstalacion] [datetime] NULL,
+	[verProductMajor] [int] NULL,
+	[verProductMinor] [int] NULL,
+	[verProductRevision] [int] NULL,
+	[verProductBuild] [int] NULL,
+	[FechaUltimoAnalisis] [datetime] NULL,
+	[UltimaAmenazaDetectada] [nvarchar](255) NULL,
+	[AccionTomada] [nvarchar](255) NULL,
+	[NombreReglaFirewall] [nvarchar](255) NULL,
+	[ValorReglaFirewall] [nvarchar](max) NULL,
+	[TipoAccionProducto] [nvarchar](100) NULL,
+	[FechaNotificacionProducto] [datetime] NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Servidor_Aplicaciones]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Servidor_Aplicaciones](
+	[ID_Servidor_Aplicacion] [int] IDENTITY(1,1) NOT NULL,
+	[ID_Servidor] [int] NOT NULL,
+	[aplcodigo] [int] NOT NULL,
+	[Fecha_Inicio] [date] NULL,
+	[Fecha_Fin] [date] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID_Servidor_Aplicacion] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Servidor_IP]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Servidor_IP](
+	[ID_Servidor_IP] [int] IDENTITY(1,1) NOT NULL,
+	[ID_Servidor] [int] NOT NULL,
+	[ID_IP] [int] NOT NULL,
+	[Host_Name] [varchar](250) NOT NULL,
+	[Fecha_Creacion] [datetime] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID_Servidor_IP] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Servidores]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Servidores](
+	[ID_Servidor] [int] IDENTITY(1,1) NOT NULL,
+	[Nombre_Servidor] [varchar](100) NULL,
+	[Monitoreo_PRTG] [varchar](250) NULL,
+	[Disponibilidad] [varchar](250) NULL,
+	[Observacion] [varchar](200) NULL,
+	[Registro_PRTG] [varchar](100) NULL,
+	[Tipo_Equipo] [varchar](100) NULL,
+	[OS] [varchar](200) NULL,
+	[Espacio_Disco_GB] [varchar](100) NULL,
+	[Criticidad_Organizacion_1] [int] NULL,
+	[Criticidad_Organizacion_2] [int] NULL,
+	[Tipo_servicio] [varchar](100) NULL,
+	[Ambiente_Ejecucion] [varchar](100) NULL,
+	[Dia_Ejecucion_Serv] [varchar](250) NULL,
+	[Hora_Serv] [varchar](250) NULL,
+	[interfaz_red] [varchar](255) NULL,
+	[velocidad] [varchar](50) NULL,
+	[hipervisor] [varchar](100) NULL,
+	[numero_discos] [int] NULL,
+	[uso_disco] [varchar](255) NULL,
+	[memoria_ram] [varchar](255) NULL,
+	[procesador] [varchar](255) NULL,
+	[tipo_disco] [varchar](10) NULL,
+	[fech_despliegue] [varchar](max) NULL,
+	[nucleos] [int] NULL,
+	[ID_Zona] [int] NULL,
+	[estcodigo] [int] NULL,
+ CONSTRAINT [PK__ServNew__F3551DC4DC78E2D3] PRIMARY KEY CLUSTERED 
+(
+	[ID_Servidor] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[tipo_acceso]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tipo_acceso](
+	[tipaccesocodigo] [int] NOT NULL,
+	[tipaccesonombre] [varchar](50) NOT NULL,
+	[tipaccesoactivo] [int] NULL,
+	[tipaccesodescripcion] [varchar](500) NULL,
+	[tipaccesoobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_tipo_acceso] PRIMARY KEY NONCLUSTERED 
+(
+	[tipaccesocodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[tipo_catastro]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tipo_catastro](
+	[tipccodigo] [int] NOT NULL,
+	[tipcnombre] [varchar](50) NOT NULL,
+	[tipcactivo] [int] NULL,
+	[tipcdescripcion] [varchar](500) NULL,
+	[tipcobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_tipo_catastro] PRIMARY KEY NONCLUSTERED 
+(
+	[tipccodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[tipo_fuentedatos]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tipo_fuentedatos](
+	[tfdcodigo] [int] NOT NULL,
+	[tfdnombre] [varchar](200) NOT NULL,
+	[tfdactivo] [int] NULL,
+	[tfddescripcion] [varchar](250) NULL,
+	[tfdobservaciones] [varchar](250) NULL,
+ CONSTRAINT [pk_tipo_fuentedatos] PRIMARY KEY NONCLUSTERED 
+(
+	[tfdcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[tipo_integracion]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tipo_integracion](
+	[intcodigo] [int] NOT NULL,
+	[intnombre] [varchar](50) NOT NULL,
+	[intactivo] [int] NULL,
+	[intdescripcion] [varchar](500) NULL,
+	[intobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_tipo_integracion] PRIMARY KEY NONCLUSTERED 
+(
+	[intcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Tipo_Respaldo]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Tipo_Respaldo](
+	[ID_Tipo_Respaldo] [int] IDENTITY(1,1) NOT NULL,
+	[Nombre_Tipo] [varchar](50) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID_Tipo_Respaldo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[tipo_usuario]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[tipo_usuario](
+	[tipcodigo] [int] NOT NULL,
+	[tipnombre] [varchar](50) NOT NULL,
+	[tipactivo] [int] NULL,
+	[tipdescripcion] [varchar](500) NULL,
+	[tipobservacion] [varchar](500) NULL,
+ CONSTRAINT [pk_tipo_usuario] PRIMARY KEY NONCLUSTERED 
+(
+	[tipcodigo] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ZONA_A]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ZONA_A](
+	[ID_Zona] [int] IDENTITY(1,1) NOT NULL,
+	[Zona] [varchar](100) NULL,
+	[Provincia] [nvarchar](255) NULL,
+	[Ciudad] [nvarchar](255) NULL,
+	[Canton] [nvarchar](255) NULL,
+	[Locacion] [nvarchar](255) NULL,
+	[Ubicacion] [nvarchar](255) NULL,
+	[VCenter] [varchar](100) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID_Zona] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[area] ADD  DEFAULT ('Área') FOR [aretipo]
+GO
+ALTER TABLE [dbo].[IP] ADD  DEFAULT ((1)) FOR [Estado_Ip]
+GO
+ALTER TABLE [dbo].[Respaldo] ADD  CONSTRAINT [DF_Respaldo_es_historico]  DEFAULT ((0)) FOR [es_historico]
+GO
+ALTER TABLE [dbo].[Respaldo] ADD  CONSTRAINT [DF_Respaldo_estado_respaldo]  DEFAULT ('activo') FOR [estado_respaldo]
+GO
+ALTER TABLE [dbo].[Respaldo] ADD  CONSTRAINT [DF_Respaldo_respaldo_completo]  DEFAULT ((1)) FOR [respaldo_completo]
+GO
+ALTER TABLE [dbo].[Respaldo] ADD  DEFAULT ((0)) FOR [antivirus_activo]
+GO
+ALTER TABLE [dbo].[Activo_Fisico]  WITH CHECK ADD  CONSTRAINT [FK_Activo_Fisico_ZONA_A] FOREIGN KEY([ID_Zona])
+REFERENCES [dbo].[ZONA_A] ([ID_Zona])
+GO
+ALTER TABLE [dbo].[Activo_Fisico] CHECK CONSTRAINT [FK_Activo_Fisico_ZONA_A]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_control] FOREIGN KEY([concodigo])
+REFERENCES [dbo].[control] ([concodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_control]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [FK_aplicativo_criticidad] FOREIGN KEY([cricodigo])
+REFERENCES [dbo].[criticidad] ([cricodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [FK_aplicativo_criticidad]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_desarrollo] FOREIGN KEY([descodigo])
+REFERENCES [dbo].[desarrollo] ([descodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_desarrollo]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_estado] FOREIGN KEY([estcodigo])
+REFERENCES [dbo].[estado] ([estcodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_estado]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_fuente] FOREIGN KEY([fuecodigo])
+REFERENCES [dbo].[fuente] ([fuecodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_fuente]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_herramienta] FOREIGN KEY([hercodigo])
+REFERENCES [dbo].[herramienta] ([hercodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_herramienta]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_tipo_acceso] FOREIGN KEY([tipaccesocodigo])
+REFERENCES [dbo].[tipo_acceso] ([tipaccesocodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_tipo_acceso]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_tipo_catastro] FOREIGN KEY([tipccodigo])
+REFERENCES [dbo].[tipo_catastro] ([tipccodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_tipo_catastro]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_tipo_fuentedatos] FOREIGN KEY([tfdcodigo])
+REFERENCES [dbo].[tipo_fuentedatos] ([tfdcodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_tipo_fuentedatos]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_tipo_integracion] FOREIGN KEY([intcodigo])
+REFERENCES [dbo].[tipo_integracion] ([intcodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_tipo_integracion]
+GO
+ALTER TABLE [dbo].[aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_aplicativo_tipo_usuario] FOREIGN KEY([tipcodigo])
+REFERENCES [dbo].[tipo_usuario] ([tipcodigo])
+GO
+ALTER TABLE [dbo].[aplicativo] CHECK CONSTRAINT [fk_aplicativo_tipo_usuario]
+GO
+ALTER TABLE [dbo].[areaempleado]  WITH CHECK ADD  CONSTRAINT [FK_areaempleado_area] FOREIGN KEY([arecodigo])
+REFERENCES [dbo].[area] ([arecodigo])
+GO
+ALTER TABLE [dbo].[areaempleado] CHECK CONSTRAINT [FK_areaempleado_area]
+GO
+ALTER TABLE [dbo].[areaempleado]  WITH CHECK ADD  CONSTRAINT [FK_areaempleado_empleado] FOREIGN KEY([empcodigo])
+REFERENCES [dbo].[empleado] ([empcodigo])
+GO
+ALTER TABLE [dbo].[areaempleado] CHECK CONSTRAINT [FK_areaempleado_empleado]
+GO
+ALTER TABLE [dbo].[BaseDatos]  WITH CHECK ADD  CONSTRAINT [FK_BaseDatos_Servidores] FOREIGN KEY([ID_Servidor])
+REFERENCES [dbo].[Servidores] ([ID_Servidor])
+GO
+ALTER TABLE [dbo].[BaseDatos] CHECK CONSTRAINT [FK_BaseDatos_Servidores]
+GO
+ALTER TABLE [dbo].[contrato_aplicativo]  WITH CHECK ADD  CONSTRAINT [fk_contrato_aplicativo_aplicativo] FOREIGN KEY([aplcodigo])
+REFERENCES [dbo].[aplicativo] ([aplcodigo])
+GO
+ALTER TABLE [dbo].[contrato_aplicativo] CHECK CONSTRAINT [fk_contrato_aplicativo_aplicativo]
+GO
+ALTER TABLE [dbo].[Empleado_Activo]  WITH CHECK ADD  CONSTRAINT [FK_Empleado_Activo_empleado] FOREIGN KEY([EmpCodigo])
+REFERENCES [dbo].[empleado] ([empcodigo])
+GO
+ALTER TABLE [dbo].[Empleado_Activo] CHECK CONSTRAINT [FK_Empleado_Activo_empleado]
+GO
+ALTER TABLE [dbo].[Empleado_Activo]  WITH CHECK ADD  CONSTRAINT [FK_EmpleadoActivo_Activo] FOREIGN KEY([ID_Activo_Fisico])
+REFERENCES [dbo].[Activo_Fisico] ([id_activo_fisico])
+GO
+ALTER TABLE [dbo].[Empleado_Activo] CHECK CONSTRAINT [FK_EmpleadoActivo_Activo]
+GO
+ALTER TABLE [dbo].[perfilempleado]  WITH CHECK ADD  CONSTRAINT [FK_perfilempleado_empleado] FOREIGN KEY([empcodigo])
+REFERENCES [dbo].[empleado] ([empcodigo])
+GO
+ALTER TABLE [dbo].[perfilempleado] CHECK CONSTRAINT [FK_perfilempleado_empleado]
+GO
+ALTER TABLE [dbo].[perfilempleado]  WITH CHECK ADD  CONSTRAINT [FK_perfilempleado_perfil] FOREIGN KEY([percodigo])
+REFERENCES [dbo].[perfil] ([percodigo])
+GO
+ALTER TABLE [dbo].[perfilempleado] CHECK CONSTRAINT [FK_perfilempleado_perfil]
+GO
+ALTER TABLE [dbo].[Respaldo]  WITH CHECK ADD  CONSTRAINT [FK_Respaldo_Frecuencia] FOREIGN KEY([ID_Frecuencia])
+REFERENCES [dbo].[Frecuencia_Respaldo] ([ID_Frecuencia])
+GO
+ALTER TABLE [dbo].[Respaldo] CHECK CONSTRAINT [FK_Respaldo_Frecuencia]
+GO
+ALTER TABLE [dbo].[Respaldo]  WITH CHECK ADD  CONSTRAINT [FK_Respaldo_Servidores] FOREIGN KEY([ID_Servidor])
+REFERENCES [dbo].[Servidores] ([ID_Servidor])
+GO
+ALTER TABLE [dbo].[Respaldo] CHECK CONSTRAINT [FK_Respaldo_Servidores]
+GO
+ALTER TABLE [dbo].[Respaldo]  WITH CHECK ADD  CONSTRAINT [FK_Respaldo_Tipo] FOREIGN KEY([ID_Tipo_Respaldo])
+REFERENCES [dbo].[Tipo_Respaldo] ([ID_Tipo_Respaldo])
+GO
+ALTER TABLE [dbo].[Respaldo] CHECK CONSTRAINT [FK_Respaldo_Tipo]
+GO
+ALTER TABLE [dbo].[rolempleado]  WITH CHECK ADD  CONSTRAINT [FK_rolempleado_empleado] FOREIGN KEY([empcodigo])
+REFERENCES [dbo].[empleado] ([empcodigo])
+GO
+ALTER TABLE [dbo].[rolempleado] CHECK CONSTRAINT [FK_rolempleado_empleado]
+GO
+ALTER TABLE [dbo].[rolempleado]  WITH CHECK ADD  CONSTRAINT [fk_rolempleado_rol] FOREIGN KEY([rolcodigo])
+REFERENCES [dbo].[rol] ([rolcodigo])
+GO
+ALTER TABLE [dbo].[rolempleado] CHECK CONSTRAINT [fk_rolempleado_rol]
+GO
+ALTER TABLE [dbo].[Servidor_Aplicaciones]  WITH CHECK ADD  CONSTRAINT [FK_ServAp_ServNew] FOREIGN KEY([ID_Servidor])
+REFERENCES [dbo].[Servidores] ([ID_Servidor])
+GO
+ALTER TABLE [dbo].[Servidor_Aplicaciones] CHECK CONSTRAINT [FK_ServAp_ServNew]
+GO
+ALTER TABLE [dbo].[Servidor_Aplicaciones]  WITH CHECK ADD  CONSTRAINT [FK_ServidorAplicaciones_Aplicativo] FOREIGN KEY([aplcodigo])
+REFERENCES [dbo].[aplicativo] ([aplcodigo])
+GO
+ALTER TABLE [dbo].[Servidor_Aplicaciones] CHECK CONSTRAINT [FK_ServidorAplicaciones_Aplicativo]
+GO
+ALTER TABLE [dbo].[Servidor_IP]  WITH CHECK ADD  CONSTRAINT [FK_IP] FOREIGN KEY([ID_IP])
+REFERENCES [dbo].[IP] ([ID_IP])
+GO
+ALTER TABLE [dbo].[Servidor_IP] CHECK CONSTRAINT [FK_IP]
+GO
+ALTER TABLE [dbo].[Servidor_IP]  WITH CHECK ADD  CONSTRAINT [FK_Servidor] FOREIGN KEY([ID_Servidor])
+REFERENCES [dbo].[Servidores] ([ID_Servidor])
+GO
+ALTER TABLE [dbo].[Servidor_IP] CHECK CONSTRAINT [FK_Servidor]
+GO
+ALTER TABLE [dbo].[Servidores]  WITH CHECK ADD  CONSTRAINT [FK_ServNew_estado] FOREIGN KEY([estcodigo])
+REFERENCES [dbo].[estado] ([estcodigo])
+GO
+ALTER TABLE [dbo].[Servidores] CHECK CONSTRAINT [FK_ServNew_estado]
+GO
+ALTER TABLE [dbo].[Servidores]  WITH CHECK ADD  CONSTRAINT [FK_ServNew_ZONA_A] FOREIGN KEY([ID_Zona])
+REFERENCES [dbo].[ZONA_A] ([ID_Zona])
+GO
+ALTER TABLE [dbo].[Servidores] CHECK CONSTRAINT [FK_ServNew_ZONA_A]
+GO
+/****** Object:  StoredProcedure [dbo].[add_activo]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- Insertar nuevo activo físico
+CREATE PROCEDURE [dbo].[add_activo]
+    @Naturaleza NVARCHAR(50),
+    @Activo NVARCHAR(50),
+    @Gestion_TIC NVARCHAR(50),
+    @Descripcion_Activo NVARCHAR(MAX),
+    @Etiqueta_Activo_Fijo NVARCHAR(150),
+    @Codigo_activo_Fijo_EBS NVARCHAR(50),
+    @Centro_Costo NVARCHAR(50),
+    @Fabricante NVARCHAR(100),
+    @Modelo NVARCHAR(150),
+    @Serie NVARCHAR(100),
+    @Num_Contrato NVARCHAR(150),
+    @Fecha_Recepcion DATETIME,
+    @Caducidad_Garantia DATETIME,
+    @ID_Zona INT,
+    @Precio_Compra DECIMAL(18,2),
+    @Ubicacion_Desc NVARCHAR(MAX),
+    @Estado NVARCHAR(50)
+AS
+BEGIN
+    INSERT INTO dbo.Activo_Fisico (
+        Naturaleza, Activo, Gestion_TIC, Descripcion_Activo, Etiqueta_Activo_Fijo,
+        Codigo_activo_Fijo_EBS, Centro_Costo, Fabricante, Modelo, Serie, Num_Contrato,
+        Fecha_Recepcion, Caducidad_Garantia, ID_Zona, Precio_Compra, Ubicacion_Desc, Estado
+    )
+    VALUES (
+        @Naturaleza, @Activo, @Gestion_TIC, @Descripcion_Activo, @Etiqueta_Activo_Fijo,
+        @Codigo_activo_Fijo_EBS, @Centro_Costo, @Fabricante, @Modelo, @Serie, @Num_Contrato,
+        @Fecha_Recepcion, @Caducidad_Garantia, @ID_Zona, @Precio_Compra, @Ubicacion_Desc, @Estado
+    );
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[add_asignacion]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[add_asignacion]
+    @EmpCodigo INT,
+    @ID_Activo_Fisico INT
+AS
+BEGIN
+    -- Validar existencia del activo
+    IF NOT EXISTS (
+        SELECT 1 FROM Activo_Fisico
+        WHERE id_activo_fisico = @ID_Activo_Fisico
+    )
+    BEGIN
+        RAISERROR('El activo físico no existe.', 16, 1);
+        RETURN;
+    END;
+
+    -- Validar existencia del empleado
+    IF NOT EXISTS (
+        SELECT 1 FROM empleado
+        WHERE empcodigo = @EmpCodigo
+    )
+    BEGIN
+        RAISERROR('El empleado no existe.', 16, 1);
+        RETURN;
+    END;
+
+    -- Insertar nueva asignación sin validar si ya está asignado
+    INSERT INTO Empleado_Activo (EmpCodigo, ID_Activo_Fisico, Fecha_Asignacion)
+    VALUES (@EmpCodigo, @ID_Activo_Fisico, GETDATE());
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[count_aplicativos_activos]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[count_aplicativos_activos]
+AS
+BEGIN
+    SELECT COUNT(*) AS total_activos
+    FROM aplicativo
+    WHERE aplactivo = 1;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[create_activo]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[create_activo]
+    @Naturaleza NVARCHAR(50),
+    @Activo NVARCHAR(50),
+    @Gestion_TIC NVARCHAR(50),
+    @Descripcion_Activo NVARCHAR(MAX),
+    @Etiqueta_Activo_Fijo NVARCHAR(150),
+    @Codigo_activo_Fijo_EBS NVARCHAR(50),
+    @Centro_Costo NVARCHAR(50),
+    @Fabricante NVARCHAR(100),
+    @Modelo NVARCHAR(150),
+    @Serie NVARCHAR(100),
+    @Num_Contrato NVARCHAR(150),
+    @Fecha_Recepcion DATETIME,
+    @Caducidad_Garantia DATETIME,
+    @ID_Zona INT,
+    @Precio_Compra DECIMAL(18,2),
+    @Ubicacion_Desc NVARCHAR(MAX),
+    @Estado NVARCHAR(50)
+AS
+BEGIN
+    -- Validación: ¿existe la zona?
+    IF NOT EXISTS (
+        SELECT 1 FROM dbo.ZONA_A WHERE ID_Zona = @ID_Zona
+    )
+    BEGIN
+        RAISERROR('La zona especificada no existe.', 16, 1);
+        RETURN;
+    END;
+
+    -- Inserción
+    INSERT INTO dbo.Activo_Fisico (
+        Naturaleza,
+        Activo,
+        Gestion_TIC,
+        Descripcion_Activo,
+        Etiqueta_Activo_Fijo,
+        Codigo_activo_Fijo_EBS,
+        Centro_Costo,
+        Fabricante,
+        Modelo,
+        Serie,
+        Num_Contrato,
+        Fecha_Recepcion,
+        Caducidad_Garantia,
+        ID_Zona,
+        Precio_Compra,
+        Ubicacion_Desc,
+        Estado
+    )
+    VALUES (
+        @Naturaleza,
+        @Activo,
+        @Gestion_TIC,
+        @Descripcion_Activo,
+        @Etiqueta_Activo_Fijo,
+        @Codigo_activo_Fijo_EBS,
+        @Centro_Costo,
+        @Fabricante,
+        @Modelo,
+        @Serie,
+        @Num_Contrato,
+        @Fecha_Recepcion,
+        @Caducidad_Garantia,
+        @ID_Zona,
+        @Precio_Compra,
+        @Ubicacion_Desc,
+        @Estado
+    );
+
+    SELECT SCOPE_IDENTITY() AS id_activo_fisico;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[delete_aplicativo]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[delete_aplicativo]
+    @aplcodigo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM aplicativo WHERE aplcodigo = @aplcodigo)
+        THROW 50200, 'El aplicativo especificado no existe.', 1;
+
+    UPDATE aplicativo
+    SET aplactivo = 0,
+        aplfechaactualizacion = GETDATE()
+    WHERE aplcodigo = @aplcodigo;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[delete_asignacion]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[delete_asignacion]
+    @ID_Empleado_Activo INT
+AS
+BEGIN
+    DELETE FROM Empleado_Activo
+    WHERE ID_Empleado_Activo = @ID_Empleado_Activo;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[delete_employee]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[delete_employee]
+    @empcodigo INT
+AS
+BEGIN
+    UPDATE empleado
+    SET empactivo = 0
+    WHERE empcodigo = @empcodigo;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[DeleteIP]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[DeleteIP]
+    @ID_IP INT
+AS
+BEGIN
+    DELETE FROM IP WHERE ID_IP = @ID_IP
+END
+GO
+/****** Object:  StoredProcedure [dbo].[disable_activo]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE    PROCEDURE [dbo].[disable_activo]
+    @id_activo_fisico INT
+AS
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM dbo.Activo_Fisico WHERE id_activo_fisico = @id_activo_fisico
+    )
+    BEGIN
+        RAISERROR('Activo no encontrado.', 16, 1);
+        RETURN;
+    END;
+
+    UPDATE dbo.Activo_Fisico
+    SET Estado = 'Deshabilitado'
+    WHERE id_activo_fisico = @id_activo_fisico;
+
+    SELECT 'Activo deshabilitado correctamente.' AS Mensaje;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[disable_servidor]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[disable_servidor]
+    @ID_Servidor INT,
+    @estcodigo_inactivo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM Servidores WHERE ID_Servidor = @ID_Servidor)
+        THROW 56020, 'Servidor no encontrado.', 1;
+
+    IF NOT EXISTS (SELECT 1 FROM estado WHERE estcodigo = @estcodigo_inactivo AND estactivo = 0)
+        THROW 56021, 'Estado inactivo inválido.', 1;
+
+    UPDATE dbo.Servidores
+    SET estcodigo = @estcodigo_inactivo
+    WHERE ID_Servidor = @ID_Servidor;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[disableActivo]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE PROCEDURE [dbo].[disableActivo]
+    @id_activo_fisico INT
+AS
+BEGIN
+    UPDATE dbo.Activo_Fisico
+    SET Estado = 'Deshabilitado'
+    WHERE id_activo_fisico = @id_activo_fisico;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[edit_activo]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE    PROCEDURE [dbo].[edit_activo]
+    @id_activo_fisico INT,
+    @Naturaleza NVARCHAR(50),
+    @Activo NVARCHAR(50),
+    @Gestion_TIC NVARCHAR(50),
+    @Descripcion_Activo NVARCHAR(MAX),
+    @Etiqueta_Activo_Fijo NVARCHAR(150),
+    @Codigo_activo_Fijo_EBS NVARCHAR(50),
+    @Centro_Costo NVARCHAR(50),
+    @Fabricante NVARCHAR(100),
+    @Modelo NVARCHAR(150),
+    @Serie NVARCHAR(100),
+    @Num_Contrato NVARCHAR(150),
+    @Fecha_Recepcion DATETIME,
+    @Caducidad_Garantia DATETIME,
+    @ID_Zona INT,
+    @Precio_Compra DECIMAL(18,2),
+    @Ubicacion_Desc NVARCHAR(MAX),
+    @Estado NVARCHAR(50)
+AS
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM dbo.Activo_Fisico WHERE id_activo_fisico = @id_activo_fisico
+    )
+    BEGIN
+        RAISERROR('Activo no encontrado.', 16, 1);
+        RETURN;
+    END;
+
+    UPDATE dbo.Activo_Fisico
+    SET Naturaleza = @Naturaleza,
+        Activo = @Activo,
+        Gestion_TIC = @Gestion_TIC,
+        Descripcion_Activo = @Descripcion_Activo,
+        Etiqueta_Activo_Fijo = @Etiqueta_Activo_Fijo,
+        Codigo_activo_Fijo_EBS = @Codigo_activo_Fijo_EBS,
+        Centro_Costo = @Centro_Costo,
+        Fabricante = @Fabricante,
+        Modelo = @Modelo,
+        Serie = @Serie,
+        Num_Contrato = @Num_Contrato,
+        Fecha_Recepcion = @Fecha_Recepcion,
+        Caducidad_Garantia = @Caducidad_Garantia,
+        ID_Zona = @ID_Zona,
+        Precio_Compra = @Precio_Compra,
+        Ubicacion_Desc = @Ubicacion_Desc,
+        Estado = @Estado
+    WHERE id_activo_fisico = @id_activo_fisico;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[get_activo_by_id]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE    PROCEDURE [dbo].[get_activo_by_id]
+    @id_activo_fisico INT
+AS
+BEGIN
+    SELECT 
+        af.id_activo_fisico,
+        af.Naturaleza,
+        af.Activo,
+        af.Gestion_TIC,
+        af.Descripcion_Activo,
+        af.Etiqueta_Activo_Fijo,
+        af.Codigo_activo_Fijo_EBS,
+        af.Centro_Costo,
+        af.Fabricante,
+        af.Modelo,
+        af.Serie,
+        af.Num_Contrato,
+        af.Fecha_Recepcion,
+        af.Caducidad_Garantia,
+        af.ID_Zona,
+        z.Zona AS Nombre_Zona,
+        af.Precio_Compra,
+        af.Ubicacion_Desc,
+        af.Estado
+    FROM dbo.Activo_Fisico af
+    LEFT JOIN dbo.ZONA_A z ON af.ID_Zona = z.ID_Zona
+    WHERE af.id_activo_fisico = @id_activo_fisico;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[get_activos]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE    PROCEDURE [dbo].[get_activos]
+AS
+BEGIN
+    SELECT 
+        af.id_activo_fisico,
+        af.Naturaleza,
+        af.Activo,
+        af.Descripcion_Activo,
+        af.Etiqueta_Activo_Fijo,
+        af.Codigo_activo_Fijo_EBS,
+        af.Fabricante,
+        af.Modelo,
+        af.Serie,
+        af.Num_Contrato,
+        af.Fecha_Recepcion,
+        af.Caducidad_Garantia,
+        af.ID_Zona,
+        z.Zona AS Nombre_Zona,
+        af.Precio_Compra,
+        af.Ubicacion_Desc,
+        af.Estado
+    FROM dbo.Activo_Fisico af
+    LEFT JOIN dbo.ZONA_A z ON af.ID_Zona = z.ID_Zona
+    ORDER BY af.id_activo_fisico DESC;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[get_aplicativo_por_id]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- Creado por Marlyn Almeida – 20/08/2025
+CREATE PROCEDURE [dbo].[get_aplicativo_por_id]
+    @aplcodigo INT
+AS
+BEGIN
+    SELECT * FROM dbo.aplicativo WHERE aplcodigo = @aplcodigo
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_aplicativos]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[get_aplicativos]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        -- 🆔 Identificación
+        a.aplcodigo               AS aplcodigo,
+        a.aplnombrecorto          AS nombreCorto,
+        a.aplnombrecompleto       AS nombreCompleto,
+        a.aplregistro             AS registro,
+        a.aplactivo               AS estadoActivo,
+
+        -- 📅 Fechas
+        a.aplfechaadquisicion     AS fechaAdquisicion,
+        a.aplfechaimplementacion  AS fechaImplementacion,
+        a.aplfechaactualizacion   AS fechaActualizacion,
+        a.aplanocreacion          AS anioCreacion,
+
+        -- 👥 Usuarios
+        a.aplnumerousuario        AS numeroUsuarios,
+        a.apladministradorusuario AS administradorUsuario,
+        a.aplvalorestimado        AS valorEstimado,
+        a.apltransaccionesmensuales AS transaccionesMensuales,
+
+        -- 🏢 Proveedor y versión
+        a.aplproveedor            AS proveedor,
+        a.aplversion              AS version,
+
+        -- 🔧 Soporte y reinicio
+        a.aplhsoportevigente      AS soporteVigente,
+        a.apltiemporeinicio       AS tiempoReinicio,
+        a.aplhorareinicio         AS horaReinicio,
+        a.aplsla                  AS sla,
+
+        -- 🌐 Acceso y seguridad
+        a.aplhttps                AS https,
+        a.aplenlace               AS enlace,
+        a.aplrutadoctecnico       AS rutaDocTecnico,
+
+        -- 🏢 Área funcional
+        a.aplarearequirente       AS areaRequirente,
+        a.aplsubarea              AS subarea,
+        a.aplproceso              AS proceso,
+
+        -- 📌 Descripción y observaciones
+        a.apldescripcion          AS descripcion,
+        a.aplobservaciones        AS observaciones,
+
+        -- 🧩 Relaciones semánticas (códigos + nombres)
+        a.cricodigo               AS idCriticidad,
+        c.crinombre               AS criticidad,
+
+        a.tipccodigo              AS idTipoCatastro,
+        tc.tipcnombre             AS tipoCatastro,
+
+        a.hercodigo               AS idHerramienta,
+        h.hernombre               AS herramienta,
+
+        a.tipaccesocodigo         AS idTipoAcceso,
+        ta.tipaccesonombre        AS tipoAcceso,
+
+        a.tipcodigo               AS idTipoUsuario,
+        tu.tipnombre              AS tipoUsuario,
+
+        a.tfdcodigo               AS idTipoFuenteDatos,
+        tf.tfdnombre              AS tipoFuenteDatos,
+
+        a.estcodigo               AS idEstado,
+        e.estnombre               AS estado,
+
+        a.intcodigo               AS idTipoIntegracion,
+        ti.intnombre              AS tipoIntegracion,
+
+        a.fuecodigo               AS idFuente,
+        f.fuenombre               AS fuente,
+
+        a.descodigo               AS idDesarrollo,
+        d.desnombre               AS desarrollo,
+
+        a.concodigo               AS idControl,
+        co.connombre              AS control
+
+    FROM dbo.aplicativo a
+    INNER JOIN dbo.criticidad c         ON a.cricodigo = c.cricodigo
+    INNER JOIN dbo.tipo_catastro tc     ON a.tipccodigo = tc.tipccodigo
+    INNER JOIN dbo.herramienta h        ON a.hercodigo = h.hercodigo
+    INNER JOIN dbo.tipo_acceso ta       ON a.tipaccesocodigo = ta.tipaccesocodigo
+    INNER JOIN dbo.tipo_usuario tu      ON a.tipcodigo = tu.tipcodigo
+    INNER JOIN dbo.tipo_fuentedatos tf  ON a.tfdcodigo = tf.tfdcodigo
+    INNER JOIN dbo.estado e             ON a.estcodigo = e.estcodigo
+    INNER JOIN dbo.tipo_integracion ti  ON a.intcodigo = ti.intcodigo
+    INNER JOIN dbo.fuente f             ON a.fuecodigo = f.fuecodigo
+    INNER JOIN dbo.desarrollo d         ON a.descodigo = d.descodigo
+    INNER JOIN dbo.control co           ON a.concodigo = co.concodigo
+
+    ORDER BY a.aplcodigo DESC;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[get_asignados]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[get_asignados]
+AS
+BEGIN
+    SELECT ID_Empleado_Activo, EmpCodigo, ID_Activo_Fisico, Fecha_Asignacion
+    FROM Empleado_Activo
+    WHERE Fecha_Desasignacion IS NULL;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[get_employees]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[get_employees]
+AS
+BEGIN
+    SELECT 
+        e.empcodigo           AS empcodigo,
+        e.empnombres          AS empnombres,
+        e.empapellidopaterno  AS empapellidopaterno,
+        e.empapellidomaterno  AS empapellidomaterno,
+        e.empcedula           AS empcedula,
+        e.empemail            AS empemail,
+        e.empcelular          AS empcelular,
+        e.emptiposangre       AS empsangre,
+        e.empsexo             AS empsexo,
+        e.empfechainicio      AS fechainicio,
+        e.empfechacreacion    AS empfechacreacion,
+        e.empusuario          AS empusuario,
+        e.empactivo           AS empactivo,
+        e.empdescripcion      AS empdescripcion,
+        e.empobservaciones    AS empobservacion,
+        a.arenombre           AS arenombre,
+        r.rolnombre           AS rolnombre,
+        p.pernombre           AS pernombre
+    FROM empleado e
+    LEFT JOIN areaempleado ae     ON e.empcodigo = ae.empcodigo
+    LEFT JOIN area a              ON ae.arecodigo = a.arecodigo
+    LEFT JOIN rolempleado re      ON e.empcodigo = re.empcodigo
+    LEFT JOIN rol r               ON re.rolcodigo = r.rolcodigo
+    LEFT JOIN perfilempleado pe   ON e.empcodigo = pe.empcodigo
+    LEFT JOIN perfil p            ON pe.percodigo = p.percodigo
+END
+
+GO
+/****** Object:  StoredProcedure [dbo].[get_historial]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[get_historial]
+AS
+BEGIN
+    SELECT ID_Empleado_Activo, EmpCodigo, ID_Activo_Fisico, Fecha_Asignacion, Fecha_Desasignacion
+    FROM Empleado_Activo
+    ORDER BY Fecha_Asignacion DESC;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[get_servidor_by_id]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[get_servidor_by_id]
+    @ID_Servidor INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        S.*, E.estnombre AS Estado, Z.Zona, Z.Provincia, Z.Ciudad, Z.Canton
+    FROM dbo.Servidores S
+    LEFT JOIN estado E ON S.estcodigo = E.estcodigo
+    LEFT JOIN ZONA_A Z ON S.ID_Zona = Z.ID_Zona
+    WHERE S.ID_Servidor = @ID_Servidor;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_servidores]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[get_servidores]
+    @estcodigo INT = NULL,
+    @ID_Zona INT = NULL,
+    @ID_Base INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        S.ID_Servidor,
+        S.Nombre_Servidor,
+        S.Tipo_Equipo,
+        S.OS,
+        S.memoria_ram,
+        S.procesador,
+        S.numero_discos,
+        S.uso_disco,
+        S.Espacio_Disco_GB,
+        S.Ambiente_Ejecucion,
+        S.Tipo_servicio,
+        S.Monitoreo_PRTG,
+        S.Disponibilidad,
+        S.Registro_PRTG,
+        S.Observacion,
+        S.Criticidad_Organizacion_1,
+        S.Criticidad_Organizacion_2,
+        S.Dia_Ejecucion_Serv,
+        S.Hora_Serv,
+        S.interfaz_red,
+        S.velocidad,
+        S.hipervisor,
+        S.tipo_disco,
+        S.fech_despliegue,
+        S.nucleos,
+
+        -- 🔗 Relaciones externas
+        E.estnombre AS Estado,
+        B.Nombre_Base,
+        B.Nombre_Instancia,
+        Z.Zona,
+        Z.Provincia,
+        Z.Ciudad,
+        Z.Canton,
+        Z.Locacion,
+        Z.Ubicacion,
+        Z.VCenter
+
+    FROM dbo.Servidores S
+    LEFT JOIN dbo.estado E ON S.estcodigo = E.estcodigo
+    LEFT JOIN dbo.BaseDatos B ON S.ID_Servidor = B.ID_Servidor
+    LEFT JOIN dbo.ZONA_A Z ON S.ID_Zona = Z.ID_Zona
+
+    WHERE (@estcodigo IS NULL OR S.estcodigo = @estcodigo)
+      AND (@ID_Zona IS NULL OR S.ID_Zona = @ID_Zona)
+      AND (@ID_Base IS NULL OR B.ID_Base = @ID_Base)
+
+    ORDER BY S.Criticidad_Organizacion_1 DESC, S.Nombre_Servidor ASC;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_total_aplicativos_por_servidor]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE   PROCEDURE [dbo].[get_total_aplicativos_por_servidor]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        S.ID_Servidor,
+        S.Nombre_Servidor,
+        COUNT(A.aplcodigo) AS Total_Aplicativos
+    FROM dbo.Servidores S
+    LEFT JOIN dbo.Servidor_Aplicaciones A ON S.ID_Servidor = A.ID_Servidor
+    GROUP BY S.ID_Servidor, S.Nombre_Servidor
+    ORDER BY Total_Aplicativos ASC;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_total_por_estado]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE   PROCEDURE [dbo].[get_total_por_estado]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        e.estnombre                       AS estado,
+        COUNT(*)                          AS totalAplicativos,
+        SUM(CASE WHEN a.aplactivo = 1 THEN 1 ELSE 0 END) AS activos,
+        SUM(CASE WHEN a.aplactivo = 0 THEN 1 ELSE 0 END) AS inactivos,
+        CAST(
+            100.0 * SUM(CASE WHEN a.aplactivo = 1 THEN 1 ELSE 0 END) / COUNT(*)
+            AS DECIMAL(5,2)
+        )                                AS porcentajeActivo
+    FROM aplicativo a
+    INNER JOIN estado e ON a.estcodigo = e.estcodigo
+    GROUP BY e.estnombre
+    ORDER BY totalAplicativos DESC;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_total_servidores]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[get_total_servidores]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT COUNT(*) AS Total_Servidores
+    FROM dbo.Servidores;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_total_servidores_estado]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[get_total_servidores_estado]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT E.estnombre AS Estado, COUNT(S.ID_Servidor) AS Total
+    FROM dbo.Servidores S
+    INNER JOIN estado E ON S.estcodigo = E.estcodigo
+    GROUP BY E.estnombre;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_total_servidores_por_estado]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[get_total_servidores_por_estado]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        E.estnombre AS Estado,
+        COUNT(S.ID_Servidor) AS Total_Servidores
+    FROM dbo.estado E
+    LEFT JOIN dbo.Servidores S ON E.estcodigo = S.estcodigo
+    GROUP BY E.estnombre
+    ORDER BY Total_Servidores ASC;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_total_servidores_zona]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[get_total_servidores_zona]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT Z.Zona, COUNT(S.ID_Servidor) AS Total
+    FROM dbo.Servidores S
+    INNER JOIN ZONA_A Z ON S.ID_Zona = Z.ID_Zona
+    GROUP BY Z.Zona;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[getActivoById]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- Obtener activo por ID
+CREATE PROCEDURE [dbo].[getActivoById]
+    @id_activo_fisico INT
+AS
+BEGIN
+    SELECT * FROM dbo.Activo_Fisico
+    WHERE id_activo_fisico = @id_activo_fisico;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[getAllActivos]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[getAllActivos]
+AS
+BEGIN
+    SELECT 
+        af.id_activo_fisico,
+        af.Naturaleza,
+        af.Activo,
+        af.Descripcion_Activo,
+        af.Etiqueta_Activo_Fijo,
+        af.Codigo_activo_Fijo_EBS,
+        af.Fabricante,
+        af.Modelo,
+        af.Serie,
+        af.Num_Contrato,
+        af.Fecha_Recepcion,
+        af.Caducidad_Garantia,
+        af.ID_Zona,
+        z.Zona AS Nombre_Zona,
+        af.Precio_Compra,
+        af.Ubicacion_Desc,
+        af.Estado,
+        e.empcodigo,
+        e.empnombres,
+        e.empapellidopaterno,
+        e.empapellidomaterno,
+        ea.Fecha_Asignacion,
+        ea.Fecha_Desasignacion
+    FROM dbo.Activo_Fisico af
+    LEFT JOIN dbo.ZONA_A z ON af.ID_Zona = z.ID_Zona
+    LEFT JOIN dbo.Empleado_Activo ea ON af.id_activo_fisico = ea.ID_Activo_Fisico
+    LEFT JOIN dbo.empleado e ON ea.EmpCodigo = e.empcodigo
+    ORDER BY af.id_activo_fisico DESC;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[GetAllEmployee]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE PROCEDURE [dbo].[GetAllEmployee]
+AS
+BEGIN
+    SELECT * FROM empleado
+END
+GO
+/****** Object:  StoredProcedure [dbo].[GetAllIPs]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[GetAllIPs]
+AS
+BEGIN
+    SELECT * FROM IP
+END
+GO
+/****** Object:  StoredProcedure [dbo].[insert_aplicativo]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[insert_aplicativo]
+    @cricodigo INT,
+    @tipccodigo INT,
+    @maccodigo INT,
+    @hercodigo INT,
+    @tipaccesocodigo INT,
+    @tipcodigo INT,
+    @tfdcodigo INT,
+    @estcodigo INT,
+    @intcodigo INT,
+    @fuecodigo INT,
+    @descodigo INT,
+    @concodigo INT,
+    @aplnombrecorto VARCHAR(50),
+    @aplnombrecompleto VARCHAR(250),
+    @aplregistro VARCHAR(50),
+    @aplfechaadquisicion DATETIME,
+    @aplfechaimplementacion DATETIME,
+    @aplproveedor VARCHAR(100),
+    @aplversion VARCHAR(100),
+    @aplanocreacion INT,
+    @aplnumerousuario INT,
+    @apladministradorusuario VARCHAR(200),
+    @aplvalorestimado VARCHAR(100),
+    @apltransaccionesmensuales VARCHAR(50),
+    @aplfechaactualizacion DATETIME,
+    @aplsla VARCHAR(100),
+    @aplrutadoctecnico VARCHAR(1000),
+    @aplenlace VARCHAR(1200),
+    @apltiemporeinicio VARCHAR(200),
+    @aplhorareinicio VARCHAR(200),
+    @aplactivo INT,
+    @apldescripcion VARCHAR(750),
+    @aplobservaciones VARCHAR(800),
+    @aplhsoportevigente VARCHAR(20),
+    @aplhttps INT,
+    @aplarearequirente VARCHAR(300),
+    @aplsubarea VARCHAR(300),
+    @aplproceso VARCHAR(200)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 🔍 Validación de claves foráneas
+    IF NOT EXISTS (SELECT 1 FROM criticidad WHERE cricodigo = @cricodigo)
+        THROW 50001, 'Código de criticidad inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_catastro WHERE tipccodigo = @tipccodigo)
+        THROW 50002, 'Código de tipo catastro inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM herramienta WHERE hercodigo = @hercodigo)
+        THROW 50003, 'Código de herramienta inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_acceso WHERE tipaccesocodigo = @tipaccesocodigo)
+        THROW 50004, 'Código de tipo acceso inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_usuario WHERE tipcodigo = @tipcodigo)
+        THROW 50005, 'Código de tipo usuario inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_fuentedatos WHERE tfdcodigo = @tfdcodigo)
+        THROW 50006, 'Código de fuente de datos inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM estado WHERE estcodigo = @estcodigo)
+        THROW 50007, 'Código de estado inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_integracion WHERE intcodigo = @intcodigo)
+        THROW 50008, 'Código de integración inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM fuente WHERE fuecodigo = @fuecodigo)
+        THROW 50009, 'Código de fuente inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM desarrollo WHERE descodigo = @descodigo)
+        THROW 50010, 'Código de desarrollo inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM control WHERE concodigo = @concodigo)
+        THROW 50011, 'Código de control inválido.', 1;
+
+    -- 🧾 Inserción principal
+    INSERT INTO aplicativo (
+        cricodigo, tipccodigo, maccodigo, hercodigo, tipaccesocodigo,
+        tipcodigo, tfdcodigo, estcodigo, intcodigo, fuecodigo,
+        descodigo, concodigo, aplnombrecorto, aplnombrecompleto,
+        aplregistro, aplfechaadquisicion, aplfechaimplementacion,
+        aplproveedor, aplversion, aplanocreacion, aplnumerousuario,
+        apladministradorusuario, aplvalorestimado, apltransaccionesmensuales,
+        aplfechaactualizacion, aplsla, aplrutadoctecnico, aplenlace,
+        apltiemporeinicio, aplhorareinicio, aplactivo, apldescripcion,
+        aplobservaciones, aplhsoportevigente, aplhttps, aplarearequirente,
+        aplsubarea, aplproceso
+    )
+    VALUES (
+        @cricodigo, @tipccodigo, @maccodigo, @hercodigo, @tipaccesocodigo,
+        @tipcodigo, @tfdcodigo, @estcodigo, @intcodigo, @fuecodigo,
+        @descodigo, @concodigo, @aplnombrecorto, @aplnombrecompleto,
+        @aplregistro, @aplfechaadquisicion, @aplfechaimplementacion,
+        @aplproveedor, @aplversion, @aplanocreacion, @aplnumerousuario,
+        @apladministradorusuario, @aplvalorestimado, @apltransaccionesmensuales,
+        @aplfechaactualizacion, @aplsla, @aplrutadoctecnico, @aplenlace,
+        @apltiemporeinicio, @aplhorareinicio, @aplactivo, @apldescripcion,
+        @aplobservaciones, @aplhsoportevigente, @aplhttps, @aplarearequirente,
+        @aplsubarea, @aplproceso
+    );
+END
+GO
+/****** Object:  StoredProcedure [dbo].[insert_employee]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[insert_employee]
+    @empnombres VARCHAR(100),
+    @empapellidopaterno VARCHAR(100),
+    @empapellidomaterno VARCHAR(100),
+    @empcedula VARCHAR(40),
+    @empemail VARCHAR(100),
+    @empcelular VARCHAR(20),
+    @emptiposangre VARCHAR(5),
+    @empsexo CHAR(1),
+    @empfechainicio DATE,
+    @empusuario VARCHAR(100),
+    @empactivo INT,
+    @empdescripcion VARCHAR(500),
+    @empobservaciones VARCHAR(500),
+    @arecodigo INT,
+    @rolcodigo INT,
+    @percodigo INT
+AS
+BEGIN
+    INSERT INTO empleado (
+        empnombres, empapellidopaterno, empapellidomaterno, empcedula,
+        empemail, empcelular, emptiposangre, empsexo,
+        empfechainicio, empfechacreacion,
+        empusuario, empactivo, empdescripcion, empobservaciones
+    )
+    VALUES (
+        @empnombres, @empapellidopaterno, @empapellidomaterno, @empcedula,
+        @empemail, @empcelular, @emptiposangre, @empsexo,
+        @empfechainicio, GETDATE(),
+        @empusuario, @empactivo, @empdescripcion, @empobservaciones
+    );
+
+    DECLARE @newId INT = SCOPE_IDENTITY();
+
+    INSERT INTO areaempleado (empcodigo, arecodigo) VALUES (@newId, @arecodigo);
+    INSERT INTO rolempleado (empcodigo, rolcodigo) VALUES (@newId, @rolcodigo);
+    INSERT INTO perfilempleado (empcodigo, percodigo) VALUES (@newId, @percodigo);
+END
+GO
+/****** Object:  StoredProcedure [dbo].[insert_servidor]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[insert_servidor]
+    @Nombre_Servidor VARCHAR(100),
+    @Monitoreo_PRTG VARCHAR(250),
+    @Disponibilidad VARCHAR(250),
+    @Observacion VARCHAR(200),
+    @Registro_PRTG VARCHAR(100),
+    @Tipo_Equipo VARCHAR(100),
+    @OS VARCHAR(200),
+    @Espacio_Disco_GB VARCHAR(100),
+    @Criticidad_Organizacion_1 INT,
+    @Criticidad_Organizacion_2 INT,
+    @Tipo_servicio VARCHAR(100),
+    @Ambiente_Ejecucion VARCHAR(100),
+    @Dia_Ejecucion_Serv VARCHAR(250),
+    @Hora_Serv VARCHAR(250),
+    @interfaz_red VARCHAR(255),
+    @velocidad VARCHAR(50),
+    @hipervisor VARCHAR(100),
+    @numero_discos INT,
+    @uso_disco VARCHAR(255),
+    @memoria_ram VARCHAR(255),
+    @procesador VARCHAR(255),
+    @tipo_disco VARCHAR(10),
+    @fech_despliegue VARCHAR(MAX),
+    @nucleos INT,
+    @ID_Zona INT,
+    @estcodigo INT,
+    @Usuario NVARCHAR(100) = NULL,
+    @Motivo NVARCHAR(500) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 🔍 Validación de claves foráneas
+    IF NOT EXISTS (SELECT 1 FROM estado WHERE estcodigo = @estcodigo)
+        THROW 56001, 'Código de estado inválido.', 1;
+
+    IF NOT EXISTS (SELECT 1 FROM ZONA_A WHERE ID_Zona = @ID_Zona)
+        THROW 56002, 'Código de zona inválido.', 1;
+
+    -- 🔍 Validación de unicidad
+    IF EXISTS (SELECT 1 FROM Servidores WHERE Nombre_Servidor = @Nombre_Servidor)
+        THROW 56003, 'Ya existe un servidor con ese nombre.', 1;
+
+    -- 🔍 Validación de criticidad
+    IF @Criticidad_Organizacion_1 NOT BETWEEN 1 AND 5
+        THROW 56004, 'Criticidad_Organizacion_1 fuera de rango (1–5).', 1;
+
+    IF @Criticidad_Organizacion_2 NOT BETWEEN 1 AND 5
+        THROW 56005, 'Criticidad_Organizacion_2 fuera de rango (1–5).', 1;
+
+    -- ✅ Inserción principal
+    INSERT INTO dbo.Servidores (
+        Nombre_Servidor, Monitoreo_PRTG, Disponibilidad, Observacion, Registro_PRTG,
+        Tipo_Equipo, OS, Espacio_Disco_GB, Criticidad_Organizacion_1, Criticidad_Organizacion_2,
+        Tipo_servicio, Ambiente_Ejecucion, Dia_Ejecucion_Serv, Hora_Serv,
+        interfaz_red, velocidad, hipervisor, numero_discos, uso_disco,
+        memoria_ram, procesador, tipo_disco, fech_despliegue, nucleos,
+        ID_Zona, estcodigo
+    )
+    VALUES (
+        @Nombre_Servidor, @Monitoreo_PRTG, @Disponibilidad, @Observacion, @Registro_PRTG,
+        @Tipo_Equipo, @OS, @Espacio_Disco_GB, @Criticidad_Organizacion_1, @Criticidad_Organizacion_2,
+        @Tipo_servicio, @Ambiente_Ejecucion, @Dia_Ejecucion_Serv, @Hora_Serv,
+        @interfaz_red, @velocidad, @hipervisor, @numero_discos, @uso_disco,
+        @memoria_ram, @procesador, @tipo_disco, @fech_despliegue, @nucleos,
+        @ID_Zona, @estcodigo
+    );
+
+    -- 📝 Auditoría opcional (si tienes tabla de auditoría)
+    DECLARE @ID_Servidor INT = SCOPE_IDENTITY();
+
+    IF @Usuario IS NOT NULL
+    BEGIN
+        INSERT INTO dbo.Auditoria_Servidores (ID_Servidor, Fecha_Creacion, Usuario, Motivo, Accion)
+        VALUES (@ID_Servidor, GETDATE(), @Usuario, @Motivo, 'INSERT');
+    END
+END
+GO
+/****** Object:  StoredProcedure [dbo].[insertActivo]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+
+CREATE PROCEDURE [dbo].[insertActivo]
+    @Naturaleza NVARCHAR(50),
+    @Activo NVARCHAR(50),
+    @Gestion_TIC NVARCHAR(50),
+    @Descripcion_Activo NVARCHAR(MAX),
+    @Etiqueta_Activo_Fijo NVARCHAR(150),
+    @Codigo_activo_Fijo_EBS NVARCHAR(50),
+    @Centro_Costo NVARCHAR(50),
+    @Fabricante NVARCHAR(100),
+    @Modelo NVARCHAR(150),
+    @Serie NVARCHAR(100),
+    @Num_Contrato NVARCHAR(150),
+    @Fecha_Recepcion DATETIME,
+    @Caducidad_Garantia DATETIME,
+    @ID_Zona INT,
+    @Precio_Compra DECIMAL(18,2),
+    @Ubicacion_Desc NVARCHAR(MAX),
+    @Estado NVARCHAR(50)
+AS
+BEGIN
+    INSERT INTO dbo.Activo_Fisico (
+        Naturaleza, Activo, Gestion_TIC, Descripcion_Activo, Etiqueta_Activo_Fijo,
+        Codigo_activo_Fijo_EBS, Centro_Costo, Fabricante, Modelo, Serie, Num_Contrato,
+        Fecha_Recepcion, Caducidad_Garantia, ID_Zona, Precio_Compra, Ubicacion_Desc, Estado
+    )
+    VALUES (
+        @Naturaleza, @Activo, @Gestion_TIC, @Descripcion_Activo, @Etiqueta_Activo_Fijo,
+        @Codigo_activo_Fijo_EBS, @Centro_Costo, @Fabricante, @Modelo, @Serie, @Num_Contrato,
+        @Fecha_Recepcion, @Caducidad_Garantia, @ID_Zona, @Precio_Compra, @Ubicacion_Desc, @Estado
+    );
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[insertEmpleadoActivo]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- Creado por Marlyn Almeida - 07/08/2025
+CREATE PROCEDURE [dbo].[insertEmpleadoActivo]
+  @ID_Activo_Fisico INT,
+  @EmpCodigo INT
+AS
+BEGIN
+  INSERT INTO Empleado_Activo (
+    ID_Activo_Fisico,
+    EmpCodigo,
+    Fecha_Asignacion
+  )
+  VALUES (
+    @ID_Activo_Fisico,
+    @EmpCodigo,
+    GETDATE()
+  );
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[InsertIP]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[InsertIP]
+    @Direccion_IP VARCHAR(250),
+    @Estado_Ip BIT,
+    @Gateway VARCHAR(250),
+    @Mascara_Subred VARCHAR(100),
+    @Rango VARCHAR(250),
+    @DNS1 VARCHAR(250),
+    @DNS2 VARCHAR(250)
+AS
+BEGIN
+    INSERT INTO IP (Direccion_IP, Estado_Ip, Gateway, Mascara_Subred, Rango, DNS1, DNS2)
+    VALUES (@Direccion_IP, @Estado_Ip, @Gateway, @Mascara_Subred, @Rango, @DNS1, @DNS2)
+END
+GO
+/****** Object:  StoredProcedure [dbo].[is_activo_libre]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[is_activo_libre]
+    @ID_Activo_Fisico INT
+AS
+BEGIN
+    SELECT COUNT(*) AS AsignacionesActivas
+    FROM Empleado_Activo
+    WHERE ID_Activo_Fisico = @ID_Activo_Fisico AND Fecha_Desasignacion IS NULL;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[remove_asignacion]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[remove_asignacion]
+    @ID_Activo_Fisico INT
+AS
+BEGIN
+    UPDATE Empleado_Activo
+    SET Fecha_Desasignacion = GETDATE()
+    WHERE ID_Activo_Fisico = @ID_Activo_Fisico AND Fecha_Desasignacion IS NULL;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[sp_login_empleado]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[sp_login_empleado]
+    @empusuario VARCHAR(100),
+    @empcontrasena VARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Validar si el usuario existe y está activo
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM empleado 
+        WHERE empusuario = @empusuario AND empactivo = 1
+    )
+    BEGIN
+        RAISERROR('El usuario no existe o está inactivo.', 16, 1);
+        RETURN;
+    END
+
+    -- Validar credenciales
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM empleado 
+        WHERE empusuario = @empusuario AND empcontrasena = @empcontrasena AND empactivo = 1
+    )
+    BEGIN
+        RAISERROR('Credenciales incorrectas.', 16, 1);
+        RETURN;
+    END
+
+    -- Retornar datos mínimos
+    SELECT empcodigo, empusuario
+    FROM empleado
+    WHERE empusuario = @empusuario AND empactivo = 1;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[update_aplicativo]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[update_aplicativo]
+    @aplcodigo INT,
+    @cricodigo INT,
+    @tipccodigo INT,
+    @maccodigo INT,
+    @hercodigo INT,
+    @tipaccesocodigo INT,
+    @tipcodigo INT,
+    @tfdcodigo INT,
+    @estcodigo INT,
+    @intcodigo INT,
+    @fuecodigo INT,
+    @descodigo INT,
+    @concodigo INT,
+    @aplnombrecorto VARCHAR(50),
+    @aplnombrecompleto VARCHAR(250),
+    @aplregistro VARCHAR(50),
+    @aplfechaadquisicion DATETIME,
+    @aplfechaimplementacion DATETIME,
+    @aplproveedor VARCHAR(100),
+    @aplversion VARCHAR(100),
+    @aplanocreacion INT,
+    @aplnumerousuario INT,
+    @apladministradorusuario VARCHAR(200),
+    @aplvalorestimado VARCHAR(100),
+    @apltransaccionesmensuales VARCHAR(50),
+    @aplfechaactualizacion DATETIME,
+    @aplsla VARCHAR(100),
+    @aplrutadoctecnico VARCHAR(1000),
+    @aplenlace VARCHAR(1200),
+    @apltiemporeinicio VARCHAR(200),
+    @aplhorareinicio VARCHAR(200),
+    @aplactivo INT,
+    @apldescripcion VARCHAR(750),
+    @aplobservaciones VARCHAR(800),
+    @aplhsoportevigente VARCHAR(20),
+    @aplhttps INT,
+    @aplarearequirente VARCHAR(300),
+    @aplsubarea VARCHAR(300),
+    @aplproceso VARCHAR(200)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 🔍 Validación de existencia
+    IF NOT EXISTS (SELECT 1 FROM aplicativo WHERE aplcodigo = @aplcodigo)
+        THROW 50100, 'El aplicativo especificado no existe.', 1;
+
+    -- 🔐 Validación de claves foráneas
+    IF NOT EXISTS (SELECT 1 FROM criticidad WHERE cricodigo = @cricodigo)
+        THROW 50101, 'Código de criticidad inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_catastro WHERE tipccodigo = @tipccodigo)
+        THROW 50102, 'Código de tipo catastro inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM herramienta WHERE hercodigo = @hercodigo)
+        THROW 50103, 'Código de herramienta inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_acceso WHERE tipaccesocodigo = @tipaccesocodigo)
+        THROW 50104, 'Código de tipo acceso inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_usuario WHERE tipcodigo = @tipcodigo)
+        THROW 50105, 'Código de tipo usuario inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_fuentedatos WHERE tfdcodigo = @tfdcodigo)
+        THROW 50106, 'Código de fuente de datos inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM estado WHERE estcodigo = @estcodigo)
+        THROW 50107, 'Código de estado inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_integracion WHERE intcodigo = @intcodigo)
+        THROW 50108, 'Código de integración inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM fuente WHERE fuecodigo = @fuecodigo)
+        THROW 50109, 'Código de fuente inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM desarrollo WHERE descodigo = @descodigo)
+        THROW 50110, 'Código de desarrollo inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM control WHERE concodigo = @concodigo)
+        THROW 50111, 'Código de control inválido.', 1;
+
+    -- 🔄 Actualización completa
+    UPDATE aplicativo
+    SET
+        cricodigo = @cricodigo,
+        tipccodigo = @tipccodigo,
+        maccodigo = @maccodigo,
+        hercodigo = @hercodigo,
+        tipaccesocodigo = @tipaccesocodigo,
+        tipcodigo = @tipcodigo,
+        tfdcodigo = @tfdcodigo,
+        estcodigo = @estcodigo,
+        intcodigo = @intcodigo,
+        fuecodigo = @fuecodigo,
+        descodigo = @descodigo,
+        concodigo = @concodigo,
+        aplnombrecorto = @aplnombrecorto,
+        aplnombrecompleto = @aplnombrecompleto,
+        aplregistro = @aplregistro,
+        aplfechaadquisicion = @aplfechaadquisicion,
+        aplfechaimplementacion = @aplfechaimplementacion,
+        aplproveedor = @aplproveedor,
+        aplversion = @aplversion,
+        aplanocreacion = @aplanocreacion,
+        aplnumerousuario = @aplnumerousuario,
+        apladministradorusuario = @apladministradorusuario,
+        aplvalorestimado = @aplvalorestimado,
+        apltransaccionesmensuales = @apltransaccionesmensuales,
+        aplfechaactualizacion = @aplfechaactualizacion,
+        aplsla = @aplsla,
+        aplrutadoctecnico = @aplrutadoctecnico,
+        aplenlace = @aplenlace,
+        apltiemporeinicio = @apltiemporeinicio,
+        aplhorareinicio = @aplhorareinicio,
+        aplactivo = @aplactivo,
+        apldescripcion = @apldescripcion,
+        aplobservaciones = @aplobservaciones,
+        aplhsoportevigente = @aplhsoportevigente,
+        aplhttps = @aplhttps,
+        aplarearequirente = @aplarearequirente,
+        aplsubarea = @aplsubarea,
+        aplproceso = @aplproceso
+    WHERE aplcodigo = @aplcodigo;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[update_employee]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[update_employee]
+    @empcodigo INT,
+    @empnombres VARCHAR(100),
+    @empapellidopaterno VARCHAR(100),
+    @empapellidomaterno VARCHAR(100),
+    @empcedula VARCHAR(40),
+    @empemail VARCHAR(100),
+    @empcelular VARCHAR(20),
+    @emptiposangre VARCHAR(5),
+    @empsexo CHAR(1),
+    @empfechainicio DATE,
+    @empusuario VARCHAR(100),
+    @empactivo INT,
+    @empdescripcion VARCHAR(500),
+    @empobservaciones VARCHAR(500),
+    @arecodigo INT,
+    @rolcodigo INT,
+    @percodigo INT
+AS
+BEGIN
+    UPDATE empleado
+    SET
+        empnombres = @empnombres,
+        empapellidopaterno = @empapellidopaterno,
+        empapellidomaterno = @empapellidomaterno,
+        empcedula = @empcedula,
+        empemail = @empemail,
+        empcelular = @empcelular,
+        emptiposangre = @emptiposangre,
+        empsexo = @empsexo,
+        empfechainicio = @empfechainicio,
+        empusuario = @empusuario,
+        empactivo = @empactivo,
+        empdescripcion = @empdescripcion,
+        empobservaciones = @empobservaciones
+    WHERE empcodigo = @empcodigo;
+
+    DELETE FROM areaempleado WHERE empcodigo = @empcodigo;
+    INSERT INTO areaempleado (empcodigo, arecodigo) VALUES (@empcodigo, @arecodigo);
+
+    DELETE FROM rolempleado WHERE empcodigo = @empcodigo;
+    INSERT INTO rolempleado (empcodigo, rolcodigo) VALUES (@empcodigo, @rolcodigo);
+
+    DELETE FROM perfilempleado WHERE empcodigo = @empcodigo;
+    INSERT INTO perfilempleado (empcodigo, percodigo) VALUES (@empcodigo, @percodigo);
+END
+GO
+/****** Object:  StoredProcedure [dbo].[update_servidor]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[update_servidor]
+    @ID_Servidor INT,
+    @Nombre_Servidor VARCHAR(100),
+    @Monitoreo_PRTG VARCHAR(250),
+    @Disponibilidad VARCHAR(250),
+    @Observacion VARCHAR(200),
+    @Registro_PRTG VARCHAR(100),
+    @Tipo_Equipo VARCHAR(100),
+    @OS VARCHAR(200),
+    @Espacio_Disco_GB VARCHAR(100),
+    @Criticidad_Organizacion_1 INT,
+    @Criticidad_Organizacion_2 INT,
+    @Tipo_servicio VARCHAR(100),
+    @Ambiente_Ejecucion VARCHAR(100),
+    @Dia_Ejecucion_Serv VARCHAR(250),
+    @Hora_Serv VARCHAR(250),
+    @interfaz_red VARCHAR(255),
+    @velocidad VARCHAR(50),
+    @hipervisor VARCHAR(100),
+    @numero_discos INT,
+    @uso_disco VARCHAR(255),
+    @memoria_ram VARCHAR(255),
+    @procesador VARCHAR(255),
+    @tipo_disco VARCHAR(10),
+    @fech_despliegue VARCHAR(MAX),
+    @nucleos INT,
+    @ID_Zona INT,
+    @estcodigo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 🔍 Validación de existencia
+    IF NOT EXISTS (SELECT 1 FROM dbo.Servidores WHERE ID_Servidor = @ID_Servidor)
+        THROW 56010, 'Servidor no encontrado.', 1;
+
+    -- 🔍 Validación de claves foráneas
+    IF NOT EXISTS (SELECT 1 FROM dbo.estado WHERE estcodigo = @estcodigo)
+        THROW 56011, 'Código de estado inválido.', 1;
+
+    IF NOT EXISTS (SELECT 1 FROM dbo.ZONA_A WHERE ID_Zona = @ID_Zona)
+        THROW 56012, 'Código de zona inválido.', 1;
+
+    -- ✏️ Actualización completa
+    UPDATE dbo.Servidores
+    SET
+        Nombre_Servidor = @Nombre_Servidor,
+        Monitoreo_PRTG = @Monitoreo_PRTG,
+        Disponibilidad = @Disponibilidad,
+        Observacion = @Observacion,
+        Registro_PRTG = @Registro_PRTG,
+        Tipo_Equipo = @Tipo_Equipo,
+        OS = @OS,
+        Espacio_Disco_GB = @Espacio_Disco_GB,
+        Criticidad_Organizacion_1 = @Criticidad_Organizacion_1,
+        Criticidad_Organizacion_2 = @Criticidad_Organizacion_2,
+        Tipo_servicio = @Tipo_servicio,
+        Ambiente_Ejecucion = @Ambiente_Ejecucion,
+        Dia_Ejecucion_Serv = @Dia_Ejecucion_Serv,
+        Hora_Serv = @Hora_Serv,
+        interfaz_red = @interfaz_red,
+        velocidad = @velocidad,
+        hipervisor = @hipervisor,
+        numero_discos = @numero_discos,
+        uso_disco = @uso_disco,
+        memoria_ram = @memoria_ram,
+        procesador = @procesador,
+        tipo_disco = @tipo_disco,
+        fech_despliegue = @fech_despliegue,
+        nucleos = @nucleos,
+        ID_Zona = @ID_Zona,
+        estcodigo = @estcodigo
+    WHERE ID_Servidor = @ID_Servidor;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[updateActivo]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+
+CREATE PROCEDURE [dbo].[updateActivo]
+    @id_activo_fisico INT,
+    @Naturaleza NVARCHAR(50),
+    @Activo NVARCHAR(50),
+    @Gestion_TIC NVARCHAR(50),
+    @Descripcion_Activo NVARCHAR(MAX),
+    @Etiqueta_Activo_Fijo NVARCHAR(150),
+    @Codigo_activo_Fijo_EBS NVARCHAR(50),
+    @Centro_Costo NVARCHAR(50),
+    @Fabricante NVARCHAR(100),
+    @Modelo NVARCHAR(150),
+    @Serie NVARCHAR(100),
+    @Num_Contrato NVARCHAR(150),
+    @Fecha_Recepcion DATETIME,
+    @Caducidad_Garantia DATETIME,
+    @ID_Zona INT,
+    @Precio_Compra DECIMAL(18,2),
+    @Ubicacion_Desc NVARCHAR(MAX),
+    @Estado NVARCHAR(50)
+AS
+BEGIN
+    UPDATE dbo.Activo_Fisico
+    SET Naturaleza = @Naturaleza,
+        Activo = @Activo,
+        Gestion_TIC = @Gestion_TIC,
+        Descripcion_Activo = @Descripcion_Activo,
+        Etiqueta_Activo_Fijo = @Etiqueta_Activo_Fijo,
+        Codigo_activo_Fijo_EBS = @Codigo_activo_Fijo_EBS,
+        Centro_Costo = @Centro_Costo,
+        Fabricante = @Fabricante,
+        Modelo = @Modelo,
+        Serie = @Serie,
+        Num_Contrato = @Num_Contrato,
+        Fecha_Recepcion = @Fecha_Recepcion,
+        Caducidad_Garantia = @Caducidad_Garantia,
+        ID_Zona = @ID_Zona,
+        Precio_Compra = @Precio_Compra,
+        Ubicacion_Desc = @Ubicacion_Desc,
+        Estado = @Estado
+    WHERE id_activo_fisico = @id_activo_fisico;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[UpdateIP]    Script Date: 1/9/2025 14:33:42 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[UpdateIP]
+    @ID_IP INT,
+    @Direccion_IP VARCHAR(250),
+    @Estado_Ip BIT,
+    @Gateway VARCHAR(250),
+    @Mascara_Subred VARCHAR(100),
+    @Rango VARCHAR(250),
+    @DNS1 VARCHAR(250),
+    @DNS2 VARCHAR(250)
+AS
+BEGIN
+    UPDATE IP
+    SET Direccion_IP = @Direccion_IP,
+        Estado_Ip = @Estado_Ip,
+        Gateway = @Gateway,
+        Mascara_Subred = @Mascara_Subred,
+        Rango = @Rango,
+        DNS1 = @DNS1,
+        DNS2 = @DNS2
+    WHERE ID_IP = @ID_IP
+END
+GO
