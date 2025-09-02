@@ -1,0 +1,51 @@
+USE [MSQCATPRO_MA]
+GO
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_login_empleado]
+    @empusuario VARCHAR(100),
+    @empcontrasena VARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 🔑 Buscar usuario activo
+    DECLARE @hashed_password VARCHAR(64);
+    SET @hashed_password = CONVERT(VARCHAR(64), HASHBYTES('SHA2_256', @empcontrasena), 2);
+
+    DECLARE @usuario_count INT;
+    DECLARE @credenciales_count INT;
+
+    -- Verificar si el usuario existe y está activo
+    SELECT @usuario_count = COUNT(*)
+    FROM empleado
+    WHERE empusuario = @empusuario AND empactivo = 1;
+
+    IF @usuario_count = 0
+    BEGIN
+        -- Usuario no existe o está inactivo
+        SELECT 'error' AS status, 'El usuario no existe o está inactivo.' AS message;
+        RETURN;
+    END
+
+    -- Verificar credenciales
+    SELECT @credenciales_count = COUNT(*)
+    FROM empleado
+    WHERE empusuario = @empusuario AND empcontrasena = @hashed_password AND empactivo = 1;
+
+    IF @credenciales_count = 0
+    BEGIN
+        -- Contraseña incorrecta
+        SELECT 'error' AS status, 'Credenciales incorrectas.' AS message;
+        RETURN;
+    END
+
+    -- ✅ Login exitoso: retornar datos mínimos
+    SELECT empcodigo, empusuario
+    FROM empleado
+    WHERE empusuario = @empusuario AND empactivo = 1;
+END
+GO
