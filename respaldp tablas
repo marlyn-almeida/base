@@ -1,0 +1,31 @@
+CREATE TABLE DataStore (
+  id_datastore INT PRIMARY KEY IDENTITY(1,1),
+
+  nombre VARCHAR(100) NOT NULL UNIQUE,
+
+  fecha_creacion DATETIME NOT NULL DEFAULT GETDATE(),
+
+  estado VARCHAR(20) NOT NULL DEFAULT 'activo' 
+    CHECK (estado IN ('activo', 'inactivo'))
+);
+
+
+
+CREATE TABLE Respaldos (
+  id_respaldo INT PRIMARY KEY IDENTITY(1,1),
+
+  nombre VARCHAR(100) NOT NULL UNIQUE,
+
+  calendario VARCHAR(50) NOT NULL CHECK (calendario IN ('diario', 'semanal', 'mensual', 'manual')),
+  tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('completo', 'incremental', 'diferencial')),
+
+  dia_ejecucion VARCHAR(15) NULL CHECK (dia_ejecucion IN ('lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo')),
+  hora_ejecucion TIME NULL,
+
+  error VARCHAR(255) NULL,
+
+  fecha_creacion DATETIME NOT NULL DEFAULT GETDATE(),
+  estado VARCHAR(20) NOT NULL DEFAULT 'activo' CHECK (estado IN ('activo', 'inactivo'))
+);
+
+
