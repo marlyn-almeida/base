@@ -1,0 +1,27 @@
+<?php
+
+// 🔗 Conexión a SQL Server con autenticación SQL
+$serverName   = "DESKTOP-101N1PC";  // ← tu servidor SQL
+$bd_DATABASE  = "MSQCATPRO_MA";     // ← tu base de datos
+$dbUsername   = "sa";               // ← usuario SQL
+$dbPassword   = "12345";            // ← contraseña SQL
+
+try {
+    // Data Source Name (DSN)
+    $dsn = "sqlsrv:Server=$serverName;Database=$bd_DATABASE";
+
+    // Conexión con usuario y contraseña
+    $pdo = new PDO($dsn, $dbUsername, $dbPassword, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_UTF8
+    ]);
+
+    // Solo para pruebas locales
+    // echo "✅ Conexión exitosa a la base '{$bd_DATABASE}' en servidor '{$serverName}'";
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(["error" => "❌ Error de conexión: " . $e->getMessage()]);
+    exit;
+}
+
+?>
