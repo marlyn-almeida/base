@@ -1,0 +1,129 @@
+USE [MSQCATPRO_MA]
+GO
+
+-- 🔹 Insertar nueva base de datos
+CREATE PROCEDURE [dbo].[InsertBaseDatos]
+    @Nombre_Base VARCHAR(100),
+    @Nombre_Instancia VARCHAR(100),
+    @Tipo_Base VARCHAR(50),
+    @Descripcion VARCHAR(300),
+    @empcodigo INT,
+    @ID_Servidor INT
+AS
+BEGIN
+    INSERT INTO BaseDatos (
+        Nombre_Base,
+        Nombre_Instancia,
+        Tipo_Base,
+        Descripcion,
+        empcodigo,
+        ID_Servidor
+    )
+    VALUES (
+        @Nombre_Base,
+        @Nombre_Instancia,
+        @Tipo_Base,
+        @Descripcion,
+        @empcodigo,
+        @ID_Servidor
+    )
+END
+GO
+
+-- 🔹 Actualizar base existente
+CREATE PROCEDURE [dbo].[UpdateBaseDatos]
+    @ID_Base INT,
+    @Nombre_Base VARCHAR(100),
+    @Nombre_Instancia VARCHAR(100),
+    @Tipo_Base VARCHAR(50),
+    @Descripcion VARCHAR(300),
+    @empcodigo INT,
+    @ID_Servidor INT
+AS
+BEGIN
+    UPDATE BaseDatos
+    SET Nombre_Base = @Nombre_Base,
+        Nombre_Instancia = @Nombre_Instancia,
+        Tipo_Base = @Tipo_Base,
+        Descripcion = @Descripcion,
+        empcodigo = @empcodigo,
+        ID_Servidor = @ID_Servidor
+    WHERE ID_Base = @ID_Base
+END
+GO
+
+-- 🔹 Eliminar base por ID
+CREATE PROCEDURE [dbo].[DeleteBaseDatos]
+    @ID_Base INT
+AS
+BEGIN
+    DELETE FROM BaseDatos WHERE ID_Base = @ID_Base
+END
+GO
+
+-- 🔹 Obtener todas las bases
+CREATE PROCEDURE [dbo].[GetAllBasesDatos]
+AS
+BEGIN
+    SELECT * FROM BaseDatos ORDER BY Nombre_Base
+END
+GO
+
+-- 🔹 Obtener detalle extendido por ID
+CREATE PROCEDURE [dbo].[GetBaseDetalle]
+    @ID_Base INT
+AS
+BEGIN
+    SELECT 
+        B.ID_Base,
+        B.Nombre_Base,
+        B.Nombre_Instancia,
+        B.Tipo_Base,
+        B.Descripcion,
+        B.empcodigo,
+        E.empnombres + ' ' + E.empapellidopaterno AS Responsable,
+        B.ID_Servidor,
+        S.Nombre_Servidor,
+        S.fech_despliegue AS Fecha_Despliegue
+    FROM BaseDatos B
+    LEFT JOIN empleado E ON B.empcodigo = E.empcodigo
+    LEFT JOIN Servidores S ON B.ID_Servidor = S.ID_Servidor
+    WHERE B.ID_Base = @ID_Base
+END
+GO
+
+-- 🔹 Asignar servidor a base
+CREATE PROCEDURE [dbo].[AssignBaseToServer]
+    @ID_Base INT,
+    @ID_Servidor INT
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM BaseDatos WHERE ID_Base = @ID_Base)
+    BEGIN
+        RAISERROR('La base de datos no existe.', 16, 1)
+        RETURN
+    END
+
+    IF NOT EXISTS (SELECT 1 FROM Servidores WHERE ID_Servidor = @ID_Servidor)
+    BEGIN
+        RAISERROR('El servidor no existe.', 16, 1)
+        RETURN
+    END
+
+    UPDATE BaseDatos
+    SET ID_Servidor = @ID_Servidor
+    WHERE ID_Base = @ID_Base
+END
+GO
+
+-- 🔹 Estadísticas agregadas
+CREATE PROCEDURE [dbo].[GetBaseEstadisticas]
+AS
+BEGIN
+    SELECT
+        COUNT(*) AS Total_Bases,
+        COUNT(DISTINCT Tipo_Base) AS Tipos_Distintos,
+        COUNT(DISTINCT ID_Servidor) AS Servidores_Asignados
+    FROM BaseDatos
+END
+GO
