@@ -1,0 +1,18 @@
+// Conexión a SQL Server usando autenticación integrada (Windows Authentication)
+
+$serverName = "SPQ-SQLTST1";        // ← tu servidor
+$bd_DATABASE = "MSQCATPRO_MA";      // ← tu base de datos
+
+try {
+    // Data Source Name con autenticación de Windows (no se requiere usuario/contraseña)
+    $pdo = new PDO("sqlsrv:Server=$serverName;Database=$bd_DATABASE", null, null, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::SQLSRV_ATTR_ENCODING => PDO::SQLSRV_ENCODING_UTF8
+    ]);
+    // Solo para pruebas locales — no dejes esto activo en producción
+    // echo "✅ Conexión exitosa a la base '{$bd_DATABASE}'";
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(["error" => "❌ Error de conexión: " . $e->getMessage()]);
+    exit;
+}
