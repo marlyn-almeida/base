@@ -1,0 +1,42 @@
+CREATE TABLE [dbo].[Base_Servidores] (
+    [ID_Base_Servidor] INT IDENTITY(1,1) NOT NULL,
+    [ID_Base] INT NOT NULL,
+    [ID_Servidor] INT NOT NULL,
+    [Fecha_Inicio_B] DATETIME NOT NULL DEFAULT GETDATE(),
+    [Fecha_Fin_B] DATETIME NULL,
+    [Estado_Asignacion] VARCHAR(20) NOT NULL DEFAULT 'activo',
+    CONSTRAINT [PK_Base_Servidores] PRIMARY KEY CLUSTERED ([ID_Base_Servidor]),
+    CONSTRAINT [FK_Base_Servidores_Base] FOREIGN KEY ([ID_Base]) REFERENCES [dbo].[BaseDatos] ([ID_Base]),
+    CONSTRAINT [FK_Base_Servidores_Servidor] FOREIGN KEY ([ID_Servidor]) REFERENCES [dbo].[Servidores] ([ID_Servidor]),
+    CONSTRAINT [CK_Estado_Asignacion] CHECK ([Estado_Asignacion] IN ('activo', 'inactivo'))
+)
+GO
+
+
+
+CREATE TABLE [dbo].[Auxiliar_Base] (
+    [ID_Auxiliar_Base] INT IDENTITY(1,1) NOT NULL,
+    [ID_Base] INT NOT NULL,
+    [empcodigo] INT NOT NULL,
+    [Tipo_Auxiliar] VARCHAR(20) NOT NULL, -- 'principal' o 'secundario'
+    [Fecha_Asignacion] DATETIME NOT NULL DEFAULT GETDATE(),
+    [Fecha_Desasignacion] DATETIME NULL,
+    [Estado_Auxiliar] VARCHAR(20) NOT NULL DEFAULT 'activo',
+    CONSTRAINT [PK_Auxiliar_Base] PRIMARY KEY CLUSTERED ([ID_Auxiliar_Base]),
+    CONSTRAINT [FK_Auxiliar_Base_Base] FOREIGN KEY ([ID_Base]) REFERENCES [dbo].[BaseDatos] ([ID_Base]),
+    CONSTRAINT [FK_Auxiliar_Base_Empleado] FOREIGN KEY ([empcodigo]) REFERENCES [dbo].[empleado] ([empcodigo]),
+    CONSTRAINT [CK_Tipo_Auxiliar] CHECK ([Tipo_Auxiliar] IN ('principal', 'secundario')),
+    CONSTRAINT [CK_Estado_Auxiliar] CHECK ([Estado_Auxiliar] IN ('activo', 'inactivo'))
+)
+GO
+
+
+
+-- 1. Eliminar la restricción de clave foránea
+ALTER TABLE [dbo].[BaseDatos] DROP CONSTRAINT [FK_BaseDatos_Servidores];
+GO
+
+-- 2. Eliminar las columnas obsoletas
+ALTER TABLE [dbo].[BaseDatos]
+DROP COLUMN [empcodigo], [ID_Servidor];
+GO
