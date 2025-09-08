@@ -1,0 +1,234 @@
+ALTER TABLE dbo.Servidores
+ADD
+    Tiene_Firewall BIT NULL,              -- 1 = sí, 0 = no
+    DNS_Serv VARCHAR(255) NULL,           -- DNS asignado al servidor
+    Host_Serv VARCHAR(255) NULL;          -- Host técnico o nombre de red
+GO
+
+
+-- Si la tabla ya existe:
+ALTER TABLE dbo.Servidor_Aplicaciones
+ADD Estado_Asignacion VARCHAR(20) DEFAULT 'activo';
+
+GO
+
+
+
+USE [MSQCATPRO_MA]
+GO
+
+-- 🔹 get_servidores
+CREATE OR ALTER PROCEDURE [dbo].[get_servidores]
+    @estcodigo INT = NULL,
+    @ID_Zona INT = NULL,
+    @ID_Base INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        S.ID_Servidor,
+        S.Nombre_Servidor,
+        S.Tipo_Equipo,
+        S.OS,
+        S.memoria_ram,
+        S.procesador,
+        S.numero_discos,
+        S.uso_disco,
+        S.Espacio_Disco_GB,
+        S.Ambiente_Ejecucion,
+        S.Tipo_servicio,
+        S.Monitoreo_PRTG,
+        S.Disponibilidad,
+        S.Registro_PRTG,
+        S.Observacion,
+        S.Criticidad_Organizacion_1,
+        S.Criticidad_Organizacion_2,
+        S.Dia_Ejecucion_Serv,
+        S.Hora_Serv,
+        S.interfaz_red,
+        S.velocidad,
+        S.hipervisor,
+        S.tipo_disco,
+        S.fech_despliegue,
+        S.nucleos,
+        S.Tiene_Firewall,
+        S.DNS_Serv,
+        S.Host_Serv,
+        E.estnombre AS Estado,
+        Z.Zona,
+        Z.Provincia,
+        Z.Ciudad,
+        Z.Canton,
+        B.Nombre_Base,
+        B.Nombre_Instancia
+    FROM dbo.Servidores S
+    LEFT JOIN dbo.estado E ON S.estcodigo = E.estcodigo
+    LEFT JOIN dbo.ZONA_A Z ON S.ID_Zona = Z.ID_Zona
+    LEFT JOIN dbo.Base_Servidores BS ON S.ID_Servidor = BS.ID_Servidor AND BS.Estado_Asignacion = 'activo'
+    LEFT JOIN dbo.BaseDatos B ON BS.ID_Base = B.ID_Base
+    WHERE (@estcodigo IS NULL OR S.estcodigo = @estcodigo)
+      AND (@ID_Zona IS NULL OR S.ID_Zona = @ID_Zona)
+      AND (@ID_Base IS NULL OR B.ID_Base = @ID_Base)
+    ORDER BY S.Criticidad_Organizacion_1 DESC, S.Nombre_Servidor ASC;
+END
+GO
+
+-- 🔹 GetBaseDetalle
+CREATE OR ALTER PROCEDURE [dbo].[GetBaseDetalle]
+    @ID_Base INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        B.ID_Base,
+        B.Nombre_Base,
+        B.Nombre_Instancia,
+        B.Tipo_Base,
+        B.Descripcion,
+        S.Nombre_Servidor,
+        S.fech_despliegue AS Fecha_Despliegue,
+        S.DNS_Serv,
+        S.Host_Serv,
+        S.Tiene_Firewall,
+        E.empnombres + ' ' + E.empapellidopaterno AS Auxiliar_Principal
+    FROM BaseDatos B
+    LEFT JOIN Base_Servidores BS ON B.ID_Base = BS.ID_Base AND BS.Estado_Asignacion = 'activo'
+    LEFT JOIN Servidores S ON BS.ID_Servidor = S.ID_Servidor
+    LEFT JOIN Auxiliar_Base AB ON B.ID_Base = AB.ID_Base AND AB.Tipo_Auxiliar = 'principal' AND AB.Estado_Auxiliar = 'activo'
+    LEFT JOIN empleado E ON AB.empcodigo = E.empcodigo
+    WHERE B.ID_Base = @ID_Base;
+END
+GO
+
+-- 🔹 AssignAplicacionToServidor
+CREATE OR ALTER PROCEDURE [dbo].[AssignAplicacionToServidor]
+    @ID_Servidor INT,
+    @aplcodigo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM Servidores WHERE ID_Servidor = @ID_Servidor)
+    BEGIN
+        RAISERROR('El servidor no existe.', 16, 1);
+        RETURN;
+    END
+
+    IF NOT EXISTS (SELECT 1 FROM aplicativo WHERE aplcodigo = @aplcodigo)
+    BEGIN
+        RAISERROR('La aplicación no existe.', 16, 1);
+        RETURN;
+    END
+
+    IF EXISTS (
+        SELECT 1 FROM Servidor_Aplicaciones
+        WHERE ID_Servidor = @ID_Servidor AND aplcodigo = @aplcodigo AND Estado_Asignacion = 'activo'
+    )
+    BEGIN
+        RAISERROR('Ya existe una asignación activa.', 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Servidor_Aplicaciones (ID_Servidor, aplcodigo, Fecha_Inicio, Estado_Asignacion)
+    VALUES (@ID_Servidor, @aplcodigo, GETDATE(), 'activo');
+END
+GO
+
+-- 🔹 DesasignarAplicacionDeServidor
+CREATE OR ALTER PROCEDURE [dbo].[DesasignarAplicacionDeServidor]
+    @ID_Servidor INT,
+    @aplcodigo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Servidor_Aplicaciones
+        WHERE ID_Servidor = @ID_Servidor AND aplcodigo = @aplcodigo AND Estado_Asignacion = 'activo'
+    )
+    BEGIN
+        RAISERROR('No existe una asignación activa.', 16, 1);
+        RETURN;
+    END
+
+    UPDATE Servidor_Aplicaciones
+    SET Estado_Asignacion = 'inactivo',
+        Fecha_Fin = GETDATE()
+    WHERE ID_Servidor = @ID_Servidor AND aplcodigo = @aplcodigo AND Estado_Asignacion = 'activo';
+END
+GO
+
+----------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE [dbo].[InsertBaseDatos]
+    @Nombre_Base VARCHAR(100),
+    @Nombre_Instancia VARCHAR(100),
+    @Tipo_Base VARCHAR(50),
+    @Descripcion VARCHAR(300),
+    @empcodigo INT = NULL -- auxiliar principal opcional
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @ID_Base INT;
+
+    -- Insertar la base
+    INSERT INTO BaseDatos (
+        Nombre_Base,
+        Nombre_Instancia,
+        Tipo_Base,
+        Descripcion
+    )
+    VALUES (
+        @Nombre_Base,
+        @Nombre_Instancia,
+        @Tipo_Base,
+        @Descripcion
+    );
+
+    SET @ID_Base = SCOPE_IDENTITY();
+
+    -- Si se proporciona auxiliar, registrar en tabla intermedia
+    IF @empcodigo IS NOT NULL
+    BEGIN
+        INSERT INTO Auxiliar_Base (ID_Base, empcodigo, Tipo_Auxiliar, Estado_Auxiliar)
+        VALUES (@ID_Base, @empcodigo, 'principal', 'activo');
+    END
+
+    -- Devolver ID y estado
+    SELECT @ID_Base AS ID_Base, 'insertado' AS status;
+END
+GO
+---------------------------------------------------------------
+CREATE OR ALTER PROCEDURE [dbo].[AssignAuxiliarToBase]
+    @ID_Base INT,
+    @empcodigo INT,
+    @Tipo_Auxiliar VARCHAR(20)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM BaseDatos WHERE ID_Base = @ID_Base)
+    BEGIN
+        RAISERROR('La base de datos no existe.', 16, 1);
+        RETURN;
+    END
+
+    IF NOT EXISTS (SELECT 1 FROM empleado WHERE empcodigo = @empcodigo)
+    BEGIN
+        RAISERROR('El empleado no existe.', 16, 1);
+        RETURN;
+    END
+
+    -- Desactivar auxiliar anterior si existe
+    UPDATE Auxiliar_Base
+    SET Estado_Auxiliar = 'inactivo',
+        Fecha_Desasignacion = GETDATE()
+    WHERE ID_Base = @ID_Base AND Tipo_Auxiliar = @Tipo_Auxiliar AND Estado_Auxiliar = 'activo';
+
+    -- Insertar nuevo auxiliar
+    INSERT INTO Auxiliar_Base (ID_Base, empcodigo, Tipo_Auxiliar, Estado_Auxiliar)
+    VALUES (@ID_Base, @empcodigo, @Tipo_Auxiliar, 'activo');
+END
+GO
