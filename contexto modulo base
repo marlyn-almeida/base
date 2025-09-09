@@ -1,0 +1,26 @@
+/****** Object:  StoredProcedure [dbo].[AssignIPToServer]    Script Date: 9/9/2025 10:16:45 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[AssignIPToServer]
+    @ID_IP INT,
+    @ID_Servidor INT,
+    @Host_Name VARCHAR(250),
+    @Fecha_Creacion DATETIME
+AS
+BEGIN
+    -- Validación: solo IPs disponibles
+    IF EXISTS (SELECT 1 FROM Servidor_IP WHERE ID_IP = @ID_IP)
+    BEGIN
+        RAISERROR('La IP ya está asignada a un servidor.', 16, 1)
+        RETURN
+    END
+
+    INSERT INTO Servidor_IP (ID_Servidor, ID_IP, Host_Name, Fecha_Creacion)
+    VALUES (@ID_Servidor, @ID_IP, @Host_Name, @Fecha_Creacion)
+
+    -- Actualiza estado de IP a ocupada
+    UPDATE IP SET Estado_Ip = 1 WHERE ID_IP = @ID_IP
+END
+GO
