@@ -1,0 +1,255 @@
+ALTER TABLE Servidor_IP
+ADD Fecha_Fin DATETIME NULL;
+
+
+ALTER TABLE Servidor_IP
+ADD Estado BIT NOT NULL DEFAULT (1);
+
+
+USE [MSQCATPRO_MA];
+GO
+
+/* ==============================
+   1. ALTER TABLE Servidor_IP
+   ============================== */
+
+   ALTER TABLE Servidor_IP
+ADD Fecha_Fin DATETIME NULL;
+
+
+ALTER TABLE Servidor_IP
+ADD Estado BIT NOT NULL DEFAULT (1);
+
+/* ==============================
+   2. SP: AssignIPToServer
+   ============================== */
+IF OBJECT_ID('dbo.AssignIPToServer', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.AssignIPToServer;
+GO
+
+CREATE PROCEDURE [dbo].[AssignIPToServer]
+    @ID_IP INT,
+    @ID_Servidor INT,
+    @Host_Name VARCHAR(250),
+    @Fecha_Creacion DATETIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Validación: IP ya asignada
+    IF EXISTS (SELECT 1 FROM Servidor_IP WHERE ID_IP = @ID_IP AND Estado = 1)
+    BEGIN
+        RAISERROR('La IP ya está asignada a un servidor activo.', 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Servidor_IP (ID_Servidor, ID_IP, Host_Name, Fecha_Creacion, Estado)
+    VALUES (@ID_Servidor, @ID_IP, @Host_Name, @Fecha_Creacion, 1);
+
+    -- Actualiza estado de IP a ocupada
+    UPDATE IP SET Estado_Ip = 1 WHERE ID_IP = @ID_IP;
+END
+GO
+
+
+/* ==============================
+   3. SP: UnassignIPFromServer
+   ============================== */
+IF OBJECT_ID('dbo.UnassignIPFromServer', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.UnassignIPFromServer;
+GO
+
+CREATE PROCEDURE [dbo].[UnassignIPFromServer]
+    @ID_IP INT,
+    @Fecha_Fin DATETIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Marcar relación como inactiva
+    UPDATE Servidor_IP
+    SET Estado = 0,
+        Fecha_Fin = @Fecha_Fin
+    WHERE ID_IP = @ID_IP
+      AND Estado = 1;  -- solo si estaba activa
+
+    -- Actualiza estado de IP a disponible
+    UPDATE IP SET Estado_Ip = 0 WHERE ID_IP = @ID_IP;
+END
+GO
+
+
+/* ==============================
+   4. SP: GetAssignedIPs
+   ============================== */
+IF OBJECT_ID('dbo.GetAssignedIPs', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.GetAssignedIPs;
+GO
+
+CREATE PROCEDURE [dbo].[GetAssignedIPs]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        IP.ID_IP,
+        IP.Direccion_IP,
+        IP.Estado_Ip,
+        S.Nombre_Servidor,
+        SI.Host_Name,
+        SI.Fecha_Creacion,
+        SI.Fecha_Fin,
+        SI.Estado
+    FROM IP
+    INNER JOIN Servidor_IP SI ON IP.ID_IP = SI.ID_IP
+    INNER JOIN Servidores S ON SI.ID_Servidor = S.ID_Servidor;
+END
+GO
+
+
+/* ==============================
+   5. SP: GetIPDetalle
+   ============================== */
+IF OBJECT_ID('dbo.GetIPDetalle', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.GetIPDetalle;
+GO
+
+CREATE PROCEDURE [dbo].[GetIPDetalle]
+    @ID_IP INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        IP.ID_IP,
+        IP.Direccion_IP,
+        IP.Estado_Ip,
+        IP.Gateway,
+        IP.Mascara_Subred,
+        IP.Rango,
+        IP.DNS1,
+        IP.DNS2,
+        IP.VLAND,
+        IP.Descripcion,
+        IP.ID_Responsable,
+        CONCAT(E.empnombres, ' ', E.empapellidopaterno, ' ', ISNULL(E.empapellidomaterno, '')) AS Responsable,
+        SI.Host_Name,
+        SI.Fecha_Creacion,
+        SI.Fecha_Fin,
+        SI.Estado,
+        S.Nombre_Servidor,
+        S.fech_despliegue AS Fecha_Despliegue_Servidor
+    FROM IP
+    LEFT JOIN empleado E ON IP.ID_Responsable = E.empcodigo
+    LEFT JOIN Servidor_IP SI ON IP.ID_IP = SI.ID_IP
+    LEFT JOIN Servidores S ON SI.ID_Servidor = S.ID_Servidor
+    WHERE IP.ID_IP = @ID_IP;
+END
+GO
+
+
+/* ==============================
+   6. Estadísticas individuales
+   ============================== */
+
+-- Total de IPs
+IF OBJECT_ID('dbo.GetTotalIPs', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.GetTotalIPs;
+GO
+
+CREATE PROCEDURE [dbo].[GetTotalIPs]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT COUNT(*) AS Total_IPs
+    FROM IP;
+END
+GO
+
+
+-- Total de IPs libres
+IF OBJECT_ID('dbo.GetTotalIPsLibres', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.GetTotalIPsLibres;
+GO
+
+CREATE PROCEDURE [dbo].[GetTotalIPsLibres]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT COUNT(*) AS Total_Libres
+    FROM IP
+    WHERE Estado_Ip = 0; -- 0 = libre
+END
+GO
+
+
+-- Total de IPs ocupadas
+IF OBJECT_ID('dbo.GetTotalIPsOcupadas', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.GetTotalIPsOcupadas;
+GO
+
+CREATE PROCEDURE [dbo].[GetTotalIPsOcupadas]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT COUNT(*) AS Total_Ocupadas
+    FROM IP
+    WHERE Estado_Ip = 1; -- 1 = ocupada
+END
+GO
+
+
+-- Total de IPs inactivas
+IF OBJECT_ID('dbo.GetTotalIPsInactivas', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.GetTotalIPsInactivas;
+GO
+
+CREATE PROCEDURE [dbo].[GetTotalIPsInactivas]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT COUNT(*) AS Total_Inactivas
+    FROM IP
+    WHERE Estado_Ip = 2; -- si manejas un tercer estado para inactiva
+END
+GO
+
+
+      USE [MSQCATPRO_MA]
+GO
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[AssignIPToServer]
+    @ID_IP INT,
+    @ID_Servidor INT,
+    @Host_Name VARCHAR(250),
+    @Fecha_Creacion DATETIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Validación: IP ya asignada
+    IF EXISTS (SELECT 1 FROM Servidor_IP WHERE ID_IP = @ID_IP AND Estado = 1)
+    BEGIN
+        RAISERROR('La IP ya está asignada a un servidor activo.', 16, 1);
+        RETURN;
+    END
+
+    -- Inserta asignación
+    INSERT INTO Servidor_IP (ID_Servidor, ID_IP, Host_Name, Fecha_Creacion, Estado)
+    VALUES (@ID_Servidor, @ID_IP, @Host_Name, @Fecha_Creacion, 1);
+
+    -- Actualiza estado de IP a ocupada
+    UPDATE IP SET Estado_Ip = 1 WHERE ID_IP = @ID_IP;
+
+    -- Devuelve resultado para que PHP no dé error
+    SELECT 'Asignada' AS Status;
+END
+GO
