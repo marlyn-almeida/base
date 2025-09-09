@@ -199,3 +199,30 @@ const ListaResponsables = () => {
         >
           Anterior
         </button>
+        >
+          Siguiente
+        </button>
+      </div>
+
+      {/* Si no hay resultados */}
+      {filteredResponsables.length === 0 && (
+        <div className="bg-white p-8 rounded-lg shadow-md text-center text-gray-500">
+          <div className="text-lg mb-2">No se encontraron responsables</div>
+          <p className="text-gray-400">Prueba con otros filtros o agrega uno nuevo</p>
+        </div>
+      )}
+
+      {/* Modal de formulario */}
+      <FormularioResponsable
+        responsable={selectedResponsable}
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onSuccess={handleSuccess}
+        isEditing={isEditing}
+      />
+    </div>
+  );
+};
+
+export default ListaResponsables;
+
