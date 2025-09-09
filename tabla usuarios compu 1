@@ -1,0 +1,30 @@
+CREATE TABLE [dbo].[usuario] (
+  usuariocodigo INT IDENTITY(1,1) PRIMARY KEY,
+  usuariocuenta VARCHAR(100) NOT NULL UNIQUE,         -- nombre de usuario
+  usuariocontrasena VARCHAR(100) NOT NULL,            -- hash de contraseña
+  usuariocorreo VARCHAR(100) NULL,                    -- correo opcional
+  usuariocreacion DATETIME DEFAULT GETDATE(),         -- fecha de creación
+  usuarioactivo INT DEFAULT 1,                        -- estado lógico
+  percodigo INT NOT NULL,                             -- perfil asociado
+  CONSTRAINT fk_usuario_perfil FOREIGN KEY (percodigo)
+    REFERENCES [dbo].[perfil](percodigo)
+);
+
+CREATE TABLE [dbo].[bitacoraacceso] (
+  accesoid INT IDENTITY(1,1) PRIMARY KEY,
+  usuariocodigo INT NOT NULL,
+  fechaacceso DATETIME DEFAULT GETDATE(),
+  ipacceso VARCHAR(50) NULL,
+  resultado VARCHAR(20) NOT NULL, -- 'Exitoso', 'Fallido', etc.
+  CONSTRAINT fk_bitacora_usuario FOREIGN KEY (usuariocodigo)
+    REFERENCES [dbo].[usuario](usuariocodigo)
+);
+
+
+ALTER TABLE [dbo].[empleado]
+DROP COLUMN empusuario;
+
+ALTER TABLE [dbo].[empleado]
+DROP COLUMN empcontrasena;
+
+
