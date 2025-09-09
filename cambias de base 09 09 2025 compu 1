@@ -1,0 +1,330 @@
+USE [MSQCATPRO_MA]
+GO
+/****** Object:  StoredProcedure [dbo].[AssignAuxiliarToBase]    Script Date: 9/9/2025 10:33:50 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[AssignAuxiliarToBase]
+    @ID_Base INT,
+    @empcodigo INT,
+    @Tipo_Auxiliar VARCHAR(20)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 🔍 Validar existencia de base activa
+    IF NOT EXISTS (
+        SELECT 1 FROM BaseDatos 
+        WHERE ID_Base = @ID_Base AND Estado_Base = 'activo'
+    )
+    BEGIN
+        RAISERROR('La base no existe o está inactiva.', 16, 1);
+        RETURN;
+    END
+
+    -- 🔍 Validar existencia de empleado habilitado
+    IF NOT EXISTS (
+        SELECT 1 FROM empleado 
+        WHERE empcodigo = @empcodigo AND empactivo = 1
+    )
+    BEGIN
+        RAISERROR('El empleado no existe o está deshabilitado.', 16, 1);
+        RETURN;
+    END
+
+    -- ✅ Insertar nuevo auxiliar
+    INSERT INTO Auxiliar_Base (ID_Base, empcodigo, Tipo_Auxiliar, Estado_Auxiliar)
+    VALUES (@ID_Base, @empcodigo, @Tipo_Auxiliar, 'activo');
+
+    -- 📤 Retorno formal para backend
+    SELECT SCOPE_IDENTITY() AS ID_Auxiliar_Base, 'asignado' AS status;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[AssignBaseToServer]    Script Date: 9/9/2025 10:33:50 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- 🔹 Asignar base a servidor
+CREATE   PROCEDURE [dbo].[AssignBaseToServer]
+    @ID_Base INT,
+    @ID_Servidor INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM BaseDatos WHERE ID_Base = @ID_Base)
+    BEGIN
+        RAISERROR('La base de datos no existe.', 16, 1);
+        RETURN;
+    END
+
+    IF NOT EXISTS (SELECT 1 FROM Servidores WHERE ID_Servidor = @ID_Servidor)
+    BEGIN
+        RAISERROR('El servidor no existe.', 16, 1);
+        RETURN;
+    END
+
+    IF EXISTS (
+        SELECT 1 FROM Base_Servidores
+        WHERE ID_Base = @ID_Base AND ID_Servidor = @ID_Servidor AND Estado_Asignacion = 'activo'
+    )
+    BEGIN
+        RAISERROR('La base ya está asignada a este servidor.', 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Base_Servidores (ID_Base, ID_Servidor)
+    VALUES (@ID_Base, @ID_Servidor);
+END
+GO
+/****** Object:  StoredProcedure [dbo].[DeleteBaseDatos]    Script Date: 9/9/2025 10:33:50 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[DeleteBaseDatos]
+    @ID_Base INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM BaseDatos WHERE ID_Base = @ID_Base AND Estado_Base = 'activo')
+    BEGIN
+        RAISERROR('La base ya está eliminada o no existe.', 16, 1);
+        RETURN;
+    END
+
+    UPDATE BaseDatos
+    SET Estado_Base = 'inactivo'
+    WHERE ID_Base = @ID_Base;
+
+    SELECT 'eliminado' AS status;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[DesasignarAuxiliarDeBase]    Script Date: 9/9/2025 10:33:50 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[DesasignarAuxiliarDeBase]
+    @ID_Base INT,
+    @Tipo_Auxiliar VARCHAR(20)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 🔍 Validar existencia de base activa
+    IF NOT EXISTS (
+        SELECT 1 FROM BaseDatos 
+        WHERE ID_Base = @ID_Base AND Estado_Base = 'activo'
+    )
+    BEGIN
+        RAISERROR('La base no existe o está inactiva.', 16, 1);
+        RETURN;
+    END
+
+    -- 🔍 Validar existencia de auxiliar activo del tipo indicado
+    IF NOT EXISTS (
+        SELECT 1 FROM Auxiliar_Base
+        WHERE ID_Base = @ID_Base 
+          AND Tipo_Auxiliar = @Tipo_Auxiliar 
+          AND Estado_Auxiliar = 'activo'
+    )
+    BEGIN
+        RAISERROR('No hay auxiliar activo de ese tipo para esta base.', 16, 1);
+        RETURN;
+    END
+
+    -- ✅ Desasignar auxiliar
+    UPDATE Auxiliar_Base
+    SET Estado_Auxiliar = 'inactivo',
+        Fecha_Desasignacion = GETDATE()
+    WHERE ID_Base = @ID_Base 
+      AND Tipo_Auxiliar = @Tipo_Auxiliar 
+      AND Estado_Auxiliar = 'activo';
+
+    -- 📤 Retorno formal
+    SELECT 'desasignado' AS status;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[DesasignarBaseDeServidor]    Script Date: 9/9/2025 10:33:50 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- 🔹 Desasignar base de servidor
+CREATE   PROCEDURE [dbo].[DesasignarBaseDeServidor]
+    @ID_Base INT,
+    @ID_Servidor INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Base_Servidores
+        WHERE ID_Base = @ID_Base AND ID_Servidor = @ID_Servidor AND Estado_Asignacion = 'activo'
+    )
+    BEGIN
+        RAISERROR('No existe una asignación activa entre esta base y este servidor.', 16, 1);
+        RETURN;
+    END
+
+    UPDATE Base_Servidores
+    SET Estado_Asignacion = 'inactivo',
+        Fecha_Fin_B = GETDATE()
+    WHERE ID_Base = @ID_Base AND ID_Servidor = @ID_Servidor AND Estado_Asignacion = 'activo';
+END
+GO
+/****** Object:  StoredProcedure [dbo].[GetAllBasesDatos]    Script Date: 9/9/2025 10:33:50 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[GetAllBasesDatos]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT * FROM BaseDatos
+    WHERE Estado_Base = 'activo'
+    ORDER BY Nombre_Base;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[GetBaseDetalle]    Script Date: 9/9/2025 10:33:50 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[GetBaseDetalle]
+    @ID_Base INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        B.ID_Base,
+        B.Nombre_Base,
+        B.Nombre_Instancia,
+        B.Tipo_Base,
+        B.Descripcion,
+
+        -- Información del servidor asignado
+        S.ID_Servidor,
+        S.Nombre_Servidor,
+        S.fech_despliegue AS Fecha_Despliegue,
+
+        -- Auxiliar principal
+        E.empnombres + ' ' + E.empapellidopaterno AS Auxiliar_Principal,
+
+        -- Auxiliar secundario
+        E2.empnombres + ' ' + E2.empapellidopaterno AS Auxiliar_Secundario
+
+    FROM BaseDatos B
+    LEFT JOIN Base_Servidores BS ON B.ID_Base = BS.ID_Base AND BS.Estado_Asignacion = 'activo'
+    LEFT JOIN Servidores S ON BS.ID_Servidor = S.ID_Servidor
+
+    LEFT JOIN Auxiliar_Base AB1 ON B.ID_Base = AB1.ID_Base AND AB1.Tipo_Auxiliar = 'principal' AND AB1.Estado_Auxiliar = 'activo'
+    LEFT JOIN empleado E ON AB1.empcodigo = E.empcodigo
+
+    LEFT JOIN Auxiliar_Base AB2 ON B.ID_Base = AB2.ID_Base AND AB2.Tipo_Auxiliar = 'secundario' AND AB2.Estado_Auxiliar = 'activo'
+    LEFT JOIN empleado E2 ON AB2.empcodigo = E2.empcodigo
+
+    WHERE B.ID_Base = @ID_Base;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[GetBaseEstadisticas]    Script Date: 9/9/2025 10:33:50 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- 🔹 Estadísticas agregadas
+CREATE   PROCEDURE [dbo].[GetBaseEstadisticas]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        COUNT(*) AS Total_Bases,
+        COUNT(DISTINCT Tipo_Base) AS Tipos_Distintos,
+        COUNT(DISTINCT BS.ID_Servidor) AS Servidores_Asignados,
+        COUNT(DISTINCT AB.empcodigo) AS Auxiliares_Asignados
+    FROM BaseDatos B
+    LEFT JOIN Base_Servidores BS ON B.ID_Base = BS.ID_Base AND BS.Estado_Asignacion = 'activo'
+    LEFT JOIN Auxiliar_Base AB ON B.ID_Base = AB.ID_Base AND AB.Estado_Auxiliar = 'activo';
+END
+GO
+/****** Object:  StoredProcedure [dbo].[InsertBaseDatos]    Script Date: 9/9/2025 10:33:50 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[InsertBaseDatos]
+    @Nombre_Base VARCHAR(100),
+    @Nombre_Instancia VARCHAR(100),
+    @Tipo_Base VARCHAR(50),
+    @Descripcion VARCHAR(300),
+    @empcodigo INT = NULL -- auxiliar principal opcional
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @ID_Base INT;
+
+    -- Insertar la base
+    INSERT INTO BaseDatos (
+        Nombre_Base,
+        Nombre_Instancia,
+        Tipo_Base,
+        Descripcion
+    )
+    VALUES (
+        @Nombre_Base,
+        @Nombre_Instancia,
+        @Tipo_Base,
+        @Descripcion
+    );
+
+    SET @ID_Base = SCOPE_IDENTITY();
+
+    -- Si se proporciona auxiliar, registrar en tabla intermedia
+    IF @empcodigo IS NOT NULL
+    BEGIN
+        INSERT INTO Auxiliar_Base (ID_Base, empcodigo, Tipo_Auxiliar, Estado_Auxiliar)
+        VALUES (@ID_Base, @empcodigo, 'principal', 'activo');
+    END
+
+    -- Devolver ID y estado
+    SELECT @ID_Base AS ID_Base, 'insertado' AS status;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[UpdateBaseDatos]    Script Date: 9/9/2025 10:33:50 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- 🔹 Actualizar base existente
+CREATE   PROCEDURE [dbo].[UpdateBaseDatos]
+    @ID_Base INT,
+    @Nombre_Base VARCHAR(100),
+    @Nombre_Instancia VARCHAR(100),
+    @Tipo_Base VARCHAR(50),
+    @Descripcion VARCHAR(300)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE BaseDatos
+    SET Nombre_Base = @Nombre_Base,
+        Nombre_Instancia = @Nombre_Instancia,
+        Tipo_Base = @Tipo_Base,
+        Descripcion = @Descripcion
+    WHERE ID_Base = @ID_Base;
+END
+GO
+
