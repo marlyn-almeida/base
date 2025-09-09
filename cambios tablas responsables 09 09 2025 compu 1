@@ -1,0 +1,203 @@
+USE [MSQCATPRO_MA]
+GO
+
+-- 🔄 Eliminar responsable (desactivación lógica)
+ALTER PROCEDURE [dbo].[delete_employee]
+    @empcodigo INT
+AS
+BEGIN
+    UPDATE empleado
+    SET empactivo = 0
+    WHERE empcodigo = @empcodigo;
+
+    SELECT 'deshabilitado' AS status;
+END
+GO
+
+-- 📥 Obtener responsables con relaciones
+ALTER PROCEDURE [dbo].[get_employees]
+AS
+BEGIN
+    SELECT 
+        e.empcodigo           AS empcodigo,
+        e.empnombres          AS empnombres,
+        e.empapellidopaterno  AS empapellidopaterno,
+        e.empapellidomaterno  AS empapellidomaterno,
+        e.empcedula           AS empcedula,
+        e.empemail            AS empemail,
+        e.empcelular          AS empcelular,
+        e.emptiposangre       AS empsangre,
+        e.empsexo             AS empsexo,
+        e.empfechainicio      AS fechainicio,
+        e.empfechacreacion    AS empfechacreacion,
+        e.empactivo           AS empactivo,
+        e.empdescripcion      AS empdescripcion,
+        e.empobservaciones    AS empobservaciones,
+        a.arenombre           AS arenombre,
+        r.rolnombre           AS rolnombre,
+        p.pernombre           AS pernombre
+    FROM empleado e
+    LEFT JOIN areaempleado ae     ON e.empcodigo = ae.empcodigo
+    LEFT JOIN area a              ON ae.arecodigo = a.arecodigo
+    LEFT JOIN rolempleado re      ON e.empcodigo = re.empcodigo
+    LEFT JOIN rol r               ON re.rolcodigo = r.rolcodigo
+    LEFT JOIN perfilempleado pe   ON e.empcodigo = pe.empcodigo
+    LEFT JOIN perfil p            ON pe.percodigo = p.percodigo;
+END
+GO
+
+-- 🧾 Obtener todos los empleados (uso interno)
+ALTER PROCEDURE [dbo].[GetAllEmployee]
+AS
+BEGIN
+    SELECT * FROM empleado;
+END
+GO
+
+-- 🆕 Insertar responsable sin campos de login
+ALTER PROCEDURE [dbo].[insert_employee]
+    @empnombres VARCHAR(100),
+    @empapellidopaterno VARCHAR(100),
+    @empapellidomaterno VARCHAR(100),
+    @empcedula VARCHAR(40),
+    @empemail VARCHAR(100),
+    @empcelular VARCHAR(20),
+    @emptiposangre VARCHAR(5),
+    @empsexo CHAR(1),
+    @empfechainicio DATE,
+    @empactivo INT,
+    @empdescripcion VARCHAR(500),
+    @empobservaciones VARCHAR(500),
+    @arecodigo INT,
+    @rolcodigo INT,
+    @percodigo INT
+AS
+BEGIN
+    INSERT INTO empleado (
+        empnombres, empapellidopaterno, empapellidomaterno, empcedula,
+        empemail, empcelular, emptiposangre, empsexo,
+        empfechainicio, empfechacreacion,
+        empactivo, empdescripcion, empobservaciones
+    )
+    VALUES (
+        @empnombres, @empapellidopaterno, @empapellidomaterno, @empcedula,
+        @empemail, @empcelular, @emptiposangre, @empsexo,
+        @empfechainicio, GETDATE(),
+        @empactivo, @empdescripcion, @empobservaciones
+    );
+
+    DECLARE @newId INT = SCOPE_IDENTITY();
+
+    INSERT INTO areaempleado (empcodigo, arecodigo) VALUES (@newId, @arecodigo);
+    INSERT INTO rolempleado (empcodigo, rolcodigo) VALUES (@newId, @rolcodigo);
+    INSERT INTO perfilempleado (empcodigo, percodigo) VALUES (@newId, @percodigo);
+
+    SELECT 'insertado' AS status, @newId AS empcodigo;
+END
+GO
+
+-- ✏️ Actualizar responsable sin campos de login
+ALTER PROCEDURE [dbo].[update_employee]
+    @empcodigo INT,
+    @empnombres VARCHAR(100),
+    @empapellidopaterno VARCHAR(100),
+    @empapellidomaterno VARCHAR(100),
+    @empcedula VARCHAR(40),
+    @empemail VARCHAR(100),
+    @empcelular VARCHAR(20),
+    @emptiposangre VARCHAR(5),
+    @empsexo CHAR(1),
+    @empfechainicio DATE,
+    @empactivo INT,
+    @empdescripcion VARCHAR(500),
+    @empobservaciones VARCHAR(500),
+    @arecodigo INT,
+    @rolcodigo INT,
+    @percodigo INT
+AS
+BEGIN
+    UPDATE empleado
+    SET
+        empnombres = @empnombres,
+        empapellidopaterno = @empapellidopaterno,
+        empapellidomaterno = @empapellidomaterno,
+        empcedula = @empcedula,
+        empemail = @empemail,
+        empcelular = @empcelular,
+        emptiposangre = @emptiposangre,
+        empsexo = @empsexo,
+        empfechainicio = @empfechainicio,
+        empactivo = @empactivo,
+        empdescripcion = @empdescripcion,
+        empobservaciones = @empobservaciones
+    WHERE empcodigo = @empcodigo;
+
+    DELETE FROM areaempleado WHERE empcodigo = @empcodigo;
+    INSERT INTO areaempleado (empcodigo, arecodigo) VALUES (@empcodigo, @arecodigo);
+
+    DELETE FROM rolempleado WHERE empcodigo = @empcodigo;
+    INSERT INTO rolempleado (empcodigo, rolcodigo) VALUES (@empcodigo, @rolcodigo);
+
+    DELETE FROM perfilempleado WHERE empcodigo = @empcodigo;
+    INSERT INTO perfilempleado (empcodigo, percodigo) VALUES (@empcodigo, @percodigo);
+
+    SELECT 'actualizado' AS status;
+END
+GO
+
+USE [MSQCATPRO_MA]
+GO
+
+-- Procedimiento para devolver empleados paginados
+CREATE OR ALTER PROCEDURE [dbo].[get_employees_paginated]
+    @limit INT,
+    @offset INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        e.empcodigo,
+        e.empnombres,
+        e.empapellidopaterno,
+        e.empapellidomaterno,
+        e.empcedula,
+        e.empemail,
+        e.empcelular,
+        e.emptiposangre AS empsangre,
+        e.empsexo,
+        e.empfechainicio AS fechainicio,
+        e.empfechacreacion AS empfechacreacion,
+        e.empactivo,
+        e.empdescripcion,
+        e.empobservaciones,
+        a.arenombre,
+        r.rolnombre,
+        p.pernombre
+    FROM empleado e
+    LEFT JOIN areaempleado ae     ON e.empcodigo = ae.empcodigo
+    LEFT JOIN area a              ON ae.arecodigo = a.arecodigo
+    LEFT JOIN rolempleado re      ON e.empcodigo = re.empcodigo
+    LEFT JOIN rol r               ON re.rolcodigo = r.rolcodigo
+    LEFT JOIN perfilempleado pe   ON e.empcodigo = pe.empcodigo
+    LEFT JOIN perfil p            ON pe.percodigo = p.percodigo
+    ORDER BY e.empcodigo
+    OFFSET @offset ROWS
+    FETCH NEXT @limit ROWS ONLY;
+END
+GO
+
+USE [MSQCATPRO_MA]
+GO
+
+-- Procedimiento para obtener el total de empleados activos para paginación
+CREATE OR ALTER PROCEDURE [dbo].[get_total_paginas_empleados]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT COUNT(*) AS total
+    FROM empleado
+    WHERE empactivo = 1;
+END
+GO
