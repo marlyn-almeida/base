@@ -1,0 +1,216 @@
+USE [MSQCATPRO_MA]
+GO
+/****** Object:  StoredProcedure [dbo].[delete_employee]    Script Date: 10/9/2025 13:56:35 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- 🔄 Eliminar responsable (desactivación lógica)
+CREATE PROCEDURE [dbo].[delete_employee]
+    @empcodigo INT
+AS
+BEGIN
+    UPDATE empleado
+    SET empactivo = 0
+    WHERE empcodigo = @empcodigo;
+
+    SELECT 'deshabilitado' AS status;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_employees]    Script Date: 10/9/2025 13:56:35 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- 📥 Obtener responsables con relaciones
+CREATE PROCEDURE [dbo].[get_employees]
+AS
+BEGIN
+    SELECT 
+        e.empcodigo           AS empcodigo,
+        e.empnombres          AS empnombres,
+        e.empapellidopaterno  AS empapellidopaterno,
+        e.empapellidomaterno  AS empapellidomaterno,
+        e.empcedula           AS empcedula,
+        e.empemail            AS empemail,
+        e.empcelular          AS empcelular,
+        e.emptiposangre       AS empsangre,
+        e.empsexo             AS empsexo,
+        e.empfechainicio      AS fechainicio,
+        e.empfechacreacion    AS empfechacreacion,
+        e.empactivo           AS empactivo,
+        e.empdescripcion      AS empdescripcion,
+        e.empobservaciones    AS empobservaciones,
+        a.arenombre           AS arenombre,
+        r.rolnombre           AS rolnombre,
+        p.pernombre           AS pernombre
+    FROM empleado e
+    LEFT JOIN areaempleado ae     ON e.empcodigo = ae.empcodigo
+    LEFT JOIN area a              ON ae.arecodigo = a.arecodigo
+    LEFT JOIN rolempleado re      ON e.empcodigo = re.empcodigo
+    LEFT JOIN rol r               ON re.rolcodigo = r.rolcodigo
+    LEFT JOIN perfilempleado pe   ON e.empcodigo = pe.empcodigo
+    LEFT JOIN perfil p            ON pe.percodigo = p.percodigo;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_employees_paginated]    Script Date: 10/9/2025 13:56:35 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[get_employees_paginated]
+    @limit INT,
+    @offset INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        e.empcodigo,
+        e.empnombres,
+        e.empapellidopaterno,
+        e.empapellidomaterno,
+        e.empcedula,
+        e.empemail,
+        e.empcelular,
+        e.emptiposangre AS empsangre,
+        e.empsexo,
+        e.empfechainicio AS fechainicio,
+        e.empfechacreacion AS empfechacreacion,
+        e.empactivo,
+        e.empdescripcion,
+        e.empobservaciones,
+        ae.arecodigo,
+        a.arenombre,
+        re.rolcodigo,
+        r.rolnombre,
+        pe.percodigo,
+        p.pernombre
+    FROM empleado e
+    LEFT JOIN areaempleado ae     ON e.empcodigo = ae.empcodigo
+    LEFT JOIN area a              ON ae.arecodigo = a.arecodigo
+    LEFT JOIN rolempleado re      ON e.empcodigo = re.empcodigo
+    LEFT JOIN rol r               ON re.rolcodigo = r.rolcodigo
+    LEFT JOIN perfilempleado pe   ON e.empcodigo = pe.empcodigo
+    LEFT JOIN perfil p            ON pe.percodigo = p.percodigo
+    ORDER BY e.empcodigo
+    OFFSET @offset ROWS
+    FETCH NEXT @limit ROWS ONLY;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[GetAllEmployee]    Script Date: 10/9/2025 13:56:35 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- 🧾 Obtener todos los empleados (uso interno)
+CREATE PROCEDURE [dbo].[GetAllEmployee]
+AS
+BEGIN
+    SELECT * FROM empleado;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[insert_employee]    Script Date: 10/9/2025 13:56:35 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- 🆕 Insertar responsable sin campos de login
+CREATE PROCEDURE [dbo].[insert_employee]
+    @empnombres VARCHAR(100),
+    @empapellidopaterno VARCHAR(100),
+    @empapellidomaterno VARCHAR(100),
+    @empcedula VARCHAR(40),
+    @empemail VARCHAR(100),
+    @empcelular VARCHAR(20),
+    @emptiposangre VARCHAR(5),
+    @empsexo CHAR(1),
+    @empfechainicio DATE,
+    @empactivo INT,
+    @empdescripcion VARCHAR(500),
+    @empobservaciones VARCHAR(500),
+    @arecodigo INT,
+    @rolcodigo INT,
+    @percodigo INT
+AS
+BEGIN
+    INSERT INTO empleado (
+        empnombres, empapellidopaterno, empapellidomaterno, empcedula,
+        empemail, empcelular, emptiposangre, empsexo,
+        empfechainicio, empfechacreacion,
+        empactivo, empdescripcion, empobservaciones
+    )
+    VALUES (
+        @empnombres, @empapellidopaterno, @empapellidomaterno, @empcedula,
+        @empemail, @empcelular, @emptiposangre, @empsexo,
+        @empfechainicio, GETDATE(),
+        @empactivo, @empdescripcion, @empobservaciones
+    );
+
+    DECLARE @newId INT = SCOPE_IDENTITY();
+
+    INSERT INTO areaempleado (empcodigo, arecodigo) VALUES (@newId, @arecodigo);
+    INSERT INTO rolempleado (empcodigo, rolcodigo) VALUES (@newId, @rolcodigo);
+    INSERT INTO perfilempleado (empcodigo, percodigo) VALUES (@newId, @percodigo);
+
+    SELECT 'insertado' AS status, @newId AS empcodigo;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[update_employee]    Script Date: 10/9/2025 13:56:35 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- ✏️ Actualizar responsable sin campos de login
+CREATE PROCEDURE [dbo].[update_employee]
+    @empcodigo INT,
+    @empnombres VARCHAR(100),
+    @empapellidopaterno VARCHAR(100),
+    @empapellidomaterno VARCHAR(100),
+    @empcedula VARCHAR(40),
+    @empemail VARCHAR(100),
+    @empcelular VARCHAR(20),
+    @emptiposangre VARCHAR(5),
+    @empsexo CHAR(1),
+    @empfechainicio DATE,
+    @empactivo INT,
+    @empdescripcion VARCHAR(500),
+    @empobservaciones VARCHAR(500),
+    @arecodigo INT,
+    @rolcodigo INT,
+    @percodigo INT
+AS
+BEGIN
+    UPDATE empleado
+    SET
+        empnombres = @empnombres,
+        empapellidopaterno = @empapellidopaterno,
+        empapellidomaterno = @empapellidomaterno,
+        empcedula = @empcedula,
+        empemail = @empemail,
+        empcelular = @empcelular,
+        emptiposangre = @emptiposangre,
+        empsexo = @empsexo,
+        empfechainicio = @empfechainicio,
+        empactivo = @empactivo,
+        empdescripcion = @empdescripcion,
+        empobservaciones = @empobservaciones
+    WHERE empcodigo = @empcodigo;
+
+    DELETE FROM areaempleado WHERE empcodigo = @empcodigo;
+    INSERT INTO areaempleado (empcodigo, arecodigo) VALUES (@empcodigo, @arecodigo);
+
+    DELETE FROM rolempleado WHERE empcodigo = @empcodigo;
+    INSERT INTO rolempleado (empcodigo, rolcodigo) VALUES (@empcodigo, @rolcodigo);
+
+    DELETE FROM perfilempleado WHERE empcodigo = @empcodigo;
+    INSERT INTO perfilempleado (empcodigo, percodigo) VALUES (@empcodigo, @percodigo);
+
+    SELECT 'actualizado' AS status;
+END
+GO
