@@ -1,0 +1,274 @@
+ALTER TABLE [dbo].[Empleado_Activo]
+ADD [Estado] NVARCHAR(50) NULL;
+GO
+
+
+CREATE OR ALTER PROCEDURE [dbo].[create_activo]
+    @Naturaleza NVARCHAR(50),
+    @Activo NVARCHAR(50),
+    @Gestion_TIC NVARCHAR(50),
+    @Descripcion_Activo NVARCHAR(MAX),
+    @Etiqueta_Activo_Fijo NVARCHAR(150),
+    @Codigo_activo_Fijo_EBS NVARCHAR(50),
+    @Centro_Costo NVARCHAR(50),
+    @Fabricante NVARCHAR(100),
+    @Modelo NVARCHAR(150),
+    @Serie NVARCHAR(100),
+    @Num_Contrato NVARCHAR(150),
+    @Fecha_Recepcion DATETIME,
+    @Caducidad_Garantia DATETIME,
+    @ID_Zona INT,
+    @Precio_Compra DECIMAL(18,2),
+    @Ubicacion_Desc NVARCHAR(MAX),
+    @Estado_activo NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM ZONA_A WHERE ID_Zona = @ID_Zona)
+    BEGIN
+        SELECT 'error' AS status, 'Zona no válida' AS mensaje;
+        RETURN;
+    END
+
+    INSERT INTO Activo_Fisico (
+        Naturaleza, Activo, Gestion_TIC, Descripcion_Activo, Etiqueta_Activo_Fijo,
+        Codigo_activo_Fijo_EBS, Centro_Costo, Fabricante, Modelo, Serie, Num_Contrato,
+        Fecha_Recepcion, Caducidad_Garantia, ID_Zona, Precio_Compra, Ubicacion_Desc, Estado_activo
+    )
+    VALUES (
+        @Naturaleza, @Activo, @Gestion_TIC, @Descripcion_Activo, @Etiqueta_Activo_Fijo,
+        @Codigo_activo_Fijo_EBS, @Centro_Costo, @Fabricante, @Modelo, @Serie, @Num_Contrato,
+        @Fecha_Recepcion, @Caducidad_Garantia, @ID_Zona, @Precio_Compra, @Ubicacion_Desc, @Estado_activo
+    );
+
+    SELECT 'insertado' AS status, SCOPE_IDENTITY() AS id_activo_fisico;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE [dbo].[edit_activo]
+    @id_activo_fisico INT,
+    @Naturaleza NVARCHAR(50),
+    @Activo NVARCHAR(50),
+    @Gestion_TIC NVARCHAR(50),
+    @Descripcion_Activo NVARCHAR(MAX),
+    @Etiqueta_Activo_Fijo NVARCHAR(150),
+    @Codigo_activo_Fijo_EBS NVARCHAR(50),
+    @Centro_Costo NVARCHAR(50),
+    @Fabricante NVARCHAR(100),
+    @Modelo NVARCHAR(150),
+    @Serie NVARCHAR(100),
+    @Num_Contrato NVARCHAR(150),
+    @Fecha_Recepcion DATETIME,
+    @Caducidad_Garantia DATETIME,
+    @ID_Zona INT,
+    @Precio_Compra DECIMAL(18,2),
+    @Ubicacion_Desc NVARCHAR(MAX),
+    @Estado_activo NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM Activo_Fisico WHERE id_activo_fisico = @id_activo_fisico)
+    BEGIN
+        SELECT 'error' AS status, 'Activo no encontrado' AS mensaje;
+        RETURN;
+    END
+
+    UPDATE Activo_Fisico
+    SET Naturaleza = @Naturaleza,
+        Activo = @Activo,
+        Gestion_TIC = @Gestion_TIC,
+        Descripcion_Activo = @Descripcion_Activo,
+        Etiqueta_Activo_Fijo = @Etiqueta_Activo_Fijo,
+        Codigo_activo_Fijo_EBS = @Codigo_activo_Fijo_EBS,
+        Centro_Costo = @Centro_Costo,
+        Fabricante = @Fabricante,
+        Modelo = @Modelo,
+        Serie = @Serie,
+        Num_Contrato = @Num_Contrato,
+        Fecha_Recepcion = @Fecha_Recepcion,
+        Caducidad_Garantia = @Caducidad_Garantia,
+        ID_Zona = @ID_Zona,
+        Precio_Compra = @Precio_Compra,
+        Ubicacion_Desc = @Ubicacion_Desc,
+        Estado_activo = @Estado_activo
+    WHERE id_activo_fisico = @id_activo_fisico;
+
+    SELECT 'actualizado' AS status;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE [dbo].[disable_activo]
+    @id_activo_fisico INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM Activo_Fisico WHERE id_activo_fisico = @id_activo_fisico)
+    BEGIN
+        SELECT 'error' AS status, 'Activo no encontrado' AS mensaje;
+        RETURN;
+    END
+
+    UPDATE Activo_Fisico
+    SET Estado_activo = 'Inhabilitado'
+    WHERE id_activo_fisico = @id_activo_fisico;
+
+    SELECT 'deshabilitado' AS status, 'Activo deshabilitado correctamente.' AS mensaje;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE [dbo].[get_activos]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        af.*, 
+        z.Zona AS Nombre_Zona,
+        e.empnombres + ' ' + e.empapellidopaterno + ' ' + e.empapellidomaterno AS Nombre_Empleado
+    FROM Activo_Fisico af
+    LEFT JOIN ZONA_A z ON af.ID_Zona = z.ID_Zona
+    LEFT JOIN Empleado_Activo ea ON af.id_activo_fisico = ea.ID_Activo_Fisico AND ea.Estado = 'Asignado'
+    LEFT JOIN empleado e ON ea.EmpCodigo = e.empcodigo;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE [dbo].[get_activo_by_id]
+    @id_activo_fisico INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        af.*, 
+        z.Zona AS Nombre_Zona,
+        e.empnombres + ' ' + e.empapellidopaterno + ' ' + e.empapellidomaterno AS Nombre_Empleado
+    FROM Activo_Fisico af
+    LEFT JOIN ZONA_A z ON af.ID_Zona = z.ID_Zona
+    LEFT JOIN Empleado_Activo ea ON af.id_activo_fisico = ea.ID_Activo_Fisico AND ea.Estado = 'Asignado'
+    LEFT JOIN empleado e ON ea.EmpCodigo = e.empcodigo
+    WHERE af.id_activo_fisico = @id_activo_fisico;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE [dbo].[get_activos_paginados]
+    @limit INT,
+    @offset INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        af.*, 
+        z.Zona AS Nombre_Zona,
+        e.empnombres + ' ' + e.empapellidopaterno + ' ' + e.empapellidomaterno AS Nombre_Empleado
+    FROM Activo_Fisico af
+    LEFT JOIN ZONA_A z ON af.ID_Zona = z.ID_Zona
+    LEFT JOIN Empleado_Activo ea ON af.id_activo_fisico = ea.ID_Activo_Fisico AND ea.Estado = 'Asignado'
+    LEFT JOIN empleado e ON ea.EmpCodigo = e.empcodigo
+    ORDER BY af.id_activo_fisico DESC
+    OFFSET @offset ROWS
+    FETCH NEXT @limit ROWS ONLY;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE [dbo].[get_total_paginas_activos]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT COUNT(*) AS total FROM Activo_Fisico WHERE Estado_activo = 'Activo';
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE [dbo].[get_zonas]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT ID_Zona, Zona, Provincia, Ciudad FROM ZONA_A;
+END
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[asignar_empleado_activo]
+    @ID_Activo_Fisico INT,
+    @EmpCodigo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO Empleado_Activo (
+        ID_Activo_Fisico,
+        EmpCodigo,
+        Fecha_Asignacion,
+        Estado
+    )
+    VALUES (
+        @ID_Activo_Fisico,
+        @EmpCodigo,
+        GETDATE(),
+        'Asignado'
+    );
+
+    SELECT 'asignado' AS status, 'Empleado asignado correctamente.' AS mensaje;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE [dbo].[desasignar_empleado_activo]
+    @ID_Activo_Fisico INT,
+    @EmpCodigo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Empleado_Activo
+        WHERE ID_Activo_Fisico = @ID_Activo_Fisico AND EmpCodigo = @EmpCodigo AND Estado = 'Asignado'
+    )
+    BEGIN
+        SELECT 'error' AS status, 'No existe una asignación activa.' AS mensaje;
+        RETURN;
+    END
+
+    UPDATE Empleado_Activo
+    SET Fecha_Desasignacion = GETDATE(),
+        Estado = 'Finalizado'
+    WHERE ID_Activo_Fisico = @ID_Activo_Fisico AND EmpCodigo = @EmpCodigo AND Estado = 'Asignado';
+
+    SELECT 'desasignado' AS status, 'Empleado desasignado correctamente.' AS mensaje;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE [dbo].[get_total_activos_fisicos]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 'ok' AS status, COUNT(*) AS total_activos FROM Activo_Fisico;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE [dbo].[get_total_activos_por_estado]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT Estado_activo, COUNT(*) AS total
+    FROM Activo_Fisico
+    GROUP BY Estado_activo;
+
+    SELECT 'ok' AS status;
+END
+GO
