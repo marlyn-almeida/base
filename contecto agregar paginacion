@@ -1,0 +1,63 @@
+📘 Contexto para implementar paginación en el módulo de activos físicos
+🎯 Objetivo
+Diseñar una interfaz que permita listar activos físicos de forma paginada, con navegación visual (flechas), filtros opcionales y sin perder la página actual al editar o visualizar un activo.
+
+🧩 Estructura recomendada
+1. Estados en React
+tsx
+const [todosActivos, setTodosActivos] = useState<Activo[]>([]);
+const [filteredActivos, setFilteredActivos] = useState<Activo[]>([]);
+const [currentPage, setCurrentPage] = useState(1);
+const [pageSize] = useState(10);
+const [pageCount, setPageCount] = useState(1);
+2. Carga desde backend
+tsx
+const cargarTodos = async () => {
+  const data = await obtenerTodosActivos(); // función que llama al backend
+  setTodosActivos(data);
+};
+3. Aplicar filtros y calcular páginas
+tsx
+useEffect(() => {
+  const filtrados = todosActivos.filter(...); // opcional: por tipo, estado, ubicación
+  setFilteredActivos(filtrados);
+  setPageCount(Math.max(1, Math.ceil(filtrados.length / pageSize)));
+}, [todosActivos, filtros...]);
+4. Extraer activos visibles en la página actual
+tsx
+const paginados = filteredActivos.slice(
+  (currentPage - 1) * pageSize,
+  currentPage * pageSize
+);
+5. Navegación visual con flechas
+tsx
+<div className="flex justify-center items-center space-x-2">
+  <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>⏮ Inicio</button>
+  <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1}>◀ Anterior</button>
+  <span>Página {currentPage} de {pageCount}</span>
+  <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, pageCount))} disabled={currentPage >= pageCount}>Siguiente ▶</button>
+  <button onClick={() => setCurrentPage(pageCount)} disabled={currentPage >= pageCount}>Fin ⏭</button>
+</div>
+6. Evitar reinicio de página al editar
+En la función handleSuccess() (tras guardar un activo), no se debe reiniciar currentPage. Solo se actualiza la lista:
+
+tsx
+const handleSuccess = () => {
+  handleModalClose();
+  cargarTodos(); // mantiene la página actual
+};
+7. Backend sugerido
+Si se desea paginación desde el backend:
+
+sql
+EXEC get_activos_paginated @limit, @offset
+Y en el frontend:
+
+ts
+const offset = (currentPage - 1) * pageSize;
+🧠 Recomendaciones adicionales
+Mantener el diseño visual limpio y agrupado por secciones (ej. información técnica, ubicación, estado).
+
+Agregar filtros por tipo de activo, estado, ubicación o responsable.
+
+Reutilizar componentes visuales como Section, Input, Select, TextArea si ya existen.
