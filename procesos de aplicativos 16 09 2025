@@ -1,0 +1,399 @@
+USE [MSQCATPRO_MA]
+GO
+/****** Object:  StoredProcedure [dbo].[count_aplicativos_activos]    Script Date: 16/9/2025 9:55:02 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[count_aplicativos_activos]
+AS
+BEGIN
+    SELECT COUNT(*) AS total_activos
+    FROM aplicativo
+    WHERE aplactivo = 1;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[delete_aplicativo]    Script Date: 16/9/2025 9:55:02 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[delete_aplicativo]
+    @aplcodigo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM aplicativo WHERE aplcodigo = @aplcodigo)
+        THROW 50200, 'El aplicativo especificado no existe.', 1;
+
+    UPDATE aplicativo
+    SET aplactivo = 0,
+        aplfechaactualizacion = GETDATE()
+    WHERE aplcodigo = @aplcodigo;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_aplicativo_por_id]    Script Date: 16/9/2025 9:55:02 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- Creado por Marlyn Almeida – 20/08/2025
+CREATE PROCEDURE [dbo].[get_aplicativo_por_id]
+    @aplcodigo INT
+AS
+BEGIN
+    SELECT * FROM dbo.aplicativo WHERE aplcodigo = @aplcodigo
+END
+GO
+/****** Object:  StoredProcedure [dbo].[get_aplicativos]    Script Date: 16/9/2025 9:55:02 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[get_aplicativos]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        -- 🆔 Identificación
+        a.aplcodigo               AS aplcodigo,
+        a.aplnombrecorto          AS nombreCorto,
+        a.aplnombrecompleto       AS nombreCompleto,
+        a.aplregistro             AS registro,
+        a.aplactivo               AS estadoActivo,
+
+        -- 📅 Fechas
+        a.aplfechaadquisicion     AS fechaAdquisicion,
+        a.aplfechaimplementacion  AS fechaImplementacion,
+        a.aplfechaactualizacion   AS fechaActualizacion,
+        a.aplanocreacion          AS anioCreacion,
+
+        -- 👥 Usuarios
+        a.aplnumerousuario        AS numeroUsuarios,
+        a.apladministradorusuario AS administradorUsuario,
+        a.aplvalorestimado        AS valorEstimado,
+        a.apltransaccionesmensuales AS transaccionesMensuales,
+
+        -- 🏢 Proveedor y versión
+        a.aplproveedor            AS proveedor,
+        a.aplversion              AS version,
+
+        -- 🔧 Soporte y reinicio
+        a.aplhsoportevigente      AS soporteVigente,
+        a.apltiemporeinicio       AS tiempoReinicio,
+        a.aplhorareinicio         AS horaReinicio,
+        a.aplsla                  AS sla,
+
+        -- 🌐 Acceso y seguridad
+        a.aplhttps                AS https,
+        a.aplenlace               AS enlace,
+        a.aplrutadoctecnico       AS rutaDocTecnico,
+
+        -- 🏢 Área funcional
+        a.aplarearequirente       AS areaRequirente,
+        a.aplsubarea              AS subarea,
+        a.aplproceso              AS proceso,
+
+        -- 📌 Descripción y observaciones
+        a.apldescripcion          AS descripcion,
+        a.aplobservaciones        AS observaciones,
+
+        -- 🧩 Relaciones semánticas (códigos + nombres)
+        a.cricodigo               AS idCriticidad,
+        c.crinombre               AS criticidad,
+
+        a.tipccodigo              AS idTipoCatastro,
+        tc.tipcnombre             AS tipoCatastro,
+
+        a.hercodigo               AS idHerramienta,
+        h.hernombre               AS herramienta,
+
+        a.tipaccesocodigo         AS idTipoAcceso,
+        ta.tipaccesonombre        AS tipoAcceso,
+
+        a.tipcodigo               AS idTipoUsuario,
+        tu.tipnombre              AS tipoUsuario,
+
+        a.tfdcodigo               AS idTipoFuenteDatos,
+        tf.tfdnombre              AS tipoFuenteDatos,
+
+        a.estcodigo               AS idEstado,
+        e.estnombre               AS estado,
+
+        a.intcodigo               AS idTipoIntegracion,
+        ti.intnombre              AS tipoIntegracion,
+
+        a.fuecodigo               AS idFuente,
+        f.fuenombre               AS fuente,
+
+        a.descodigo               AS idDesarrollo,
+        d.desnombre               AS desarrollo,
+
+        a.concodigo               AS idControl,
+        co.connombre              AS control
+
+    FROM dbo.aplicativo a
+    INNER JOIN dbo.criticidad c         ON a.cricodigo = c.cricodigo
+    INNER JOIN dbo.tipo_catastro tc     ON a.tipccodigo = tc.tipccodigo
+    INNER JOIN dbo.herramienta h        ON a.hercodigo = h.hercodigo
+    INNER JOIN dbo.tipo_acceso ta       ON a.tipaccesocodigo = ta.tipaccesocodigo
+    INNER JOIN dbo.tipo_usuario tu      ON a.tipcodigo = tu.tipcodigo
+    INNER JOIN dbo.tipo_fuentedatos tf  ON a.tfdcodigo = tf.tfdcodigo
+    INNER JOIN dbo.estado e             ON a.estcodigo = e.estcodigo
+    INNER JOIN dbo.tipo_integracion ti  ON a.intcodigo = ti.intcodigo
+    INNER JOIN dbo.fuente f             ON a.fuecodigo = f.fuecodigo
+    INNER JOIN dbo.desarrollo d         ON a.descodigo = d.descodigo
+    INNER JOIN dbo.control co           ON a.concodigo = co.concodigo
+
+    ORDER BY a.aplcodigo DESC;
+END;
+GO
+/****** Object:  StoredProcedure [dbo].[get_total_por_estado]    Script Date: 16/9/2025 9:55:02 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE   PROCEDURE [dbo].[get_total_por_estado]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        e.estnombre                       AS estado,
+        COUNT(*)                          AS totalAplicativos,
+        SUM(CASE WHEN a.aplactivo = 1 THEN 1 ELSE 0 END) AS activos,
+        SUM(CASE WHEN a.aplactivo = 0 THEN 1 ELSE 0 END) AS inactivos,
+        CAST(
+            100.0 * SUM(CASE WHEN a.aplactivo = 1 THEN 1 ELSE 0 END) / COUNT(*)
+            AS DECIMAL(5,2)
+        )                                AS porcentajeActivo
+    FROM aplicativo a
+    INNER JOIN estado e ON a.estcodigo = e.estcodigo
+    GROUP BY e.estnombre
+    ORDER BY totalAplicativos DESC;
+END
+GO
+/****** Object:  StoredProcedure [dbo].[insert_aplicativo]    Script Date: 16/9/2025 9:55:02 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[insert_aplicativo]
+    @cricodigo INT,
+    @tipccodigo INT,
+    @maccodigo INT,
+    @hercodigo INT,
+    @tipaccesocodigo INT,
+    @tipcodigo INT,
+    @tfdcodigo INT,
+    @estcodigo INT,
+    @intcodigo INT,
+    @fuecodigo INT,
+    @descodigo INT,
+    @concodigo INT,
+    @aplnombrecorto VARCHAR(50),
+    @aplnombrecompleto VARCHAR(250),
+    @aplregistro VARCHAR(50),
+    @aplfechaadquisicion DATETIME,
+    @aplfechaimplementacion DATETIME,
+    @aplproveedor VARCHAR(100),
+    @aplversion VARCHAR(100),
+    @aplanocreacion INT,
+    @aplnumerousuario INT,
+    @apladministradorusuario VARCHAR(200),
+    @aplvalorestimado VARCHAR(100),
+    @apltransaccionesmensuales VARCHAR(50),
+    @aplfechaactualizacion DATETIME,
+    @aplsla VARCHAR(100),
+    @aplrutadoctecnico VARCHAR(1000),
+    @aplenlace VARCHAR(1200),
+    @apltiemporeinicio VARCHAR(200),
+    @aplhorareinicio VARCHAR(200),
+    @aplactivo INT,
+    @apldescripcion VARCHAR(750),
+    @aplobservaciones VARCHAR(800),
+    @aplhsoportevigente VARCHAR(20),
+    @aplhttps INT,
+    @aplarearequirente VARCHAR(300),
+    @aplsubarea VARCHAR(300),
+    @aplproceso VARCHAR(200)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 🔍 Validación de claves foráneas
+    IF NOT EXISTS (SELECT 1 FROM criticidad WHERE cricodigo = @cricodigo)
+        THROW 50001, 'Código de criticidad inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_catastro WHERE tipccodigo = @tipccodigo)
+        THROW 50002, 'Código de tipo catastro inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM herramienta WHERE hercodigo = @hercodigo)
+        THROW 50003, 'Código de herramienta inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_acceso WHERE tipaccesocodigo = @tipaccesocodigo)
+        THROW 50004, 'Código de tipo acceso inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_usuario WHERE tipcodigo = @tipcodigo)
+        THROW 50005, 'Código de tipo usuario inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_fuentedatos WHERE tfdcodigo = @tfdcodigo)
+        THROW 50006, 'Código de fuente de datos inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM estado WHERE estcodigo = @estcodigo)
+        THROW 50007, 'Código de estado inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_integracion WHERE intcodigo = @intcodigo)
+        THROW 50008, 'Código de integración inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM fuente WHERE fuecodigo = @fuecodigo)
+        THROW 50009, 'Código de fuente inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM desarrollo WHERE descodigo = @descodigo)
+        THROW 50010, 'Código de desarrollo inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM control WHERE concodigo = @concodigo)
+        THROW 50011, 'Código de control inválido.', 1;
+
+    -- 🧾 Inserción principal
+    INSERT INTO aplicativo (
+        cricodigo, tipccodigo, maccodigo, hercodigo, tipaccesocodigo,
+        tipcodigo, tfdcodigo, estcodigo, intcodigo, fuecodigo,
+        descodigo, concodigo, aplnombrecorto, aplnombrecompleto,
+        aplregistro, aplfechaadquisicion, aplfechaimplementacion,
+        aplproveedor, aplversion, aplanocreacion, aplnumerousuario,
+        apladministradorusuario, aplvalorestimado, apltransaccionesmensuales,
+        aplfechaactualizacion, aplsla, aplrutadoctecnico, aplenlace,
+        apltiemporeinicio, aplhorareinicio, aplactivo, apldescripcion,
+        aplobservaciones, aplhsoportevigente, aplhttps, aplarearequirente,
+        aplsubarea, aplproceso
+    )
+    VALUES (
+        @cricodigo, @tipccodigo, @maccodigo, @hercodigo, @tipaccesocodigo,
+        @tipcodigo, @tfdcodigo, @estcodigo, @intcodigo, @fuecodigo,
+        @descodigo, @concodigo, @aplnombrecorto, @aplnombrecompleto,
+        @aplregistro, @aplfechaadquisicion, @aplfechaimplementacion,
+        @aplproveedor, @aplversion, @aplanocreacion, @aplnumerousuario,
+        @apladministradorusuario, @aplvalorestimado, @apltransaccionesmensuales,
+        @aplfechaactualizacion, @aplsla, @aplrutadoctecnico, @aplenlace,
+        @apltiemporeinicio, @aplhorareinicio, @aplactivo, @apldescripcion,
+        @aplobservaciones, @aplhsoportevigente, @aplhttps, @aplarearequirente,
+        @aplsubarea, @aplproceso
+    );
+END
+GO
+/****** Object:  StoredProcedure [dbo].[update_aplicativo]    Script Date: 16/9/2025 9:55:02 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[update_aplicativo]
+    @aplcodigo INT,
+    @cricodigo INT,
+    @tipccodigo INT,
+    @maccodigo INT,
+    @hercodigo INT,
+    @tipaccesocodigo INT,
+    @tipcodigo INT,
+    @tfdcodigo INT,
+    @estcodigo INT,
+    @intcodigo INT,
+    @fuecodigo INT,
+    @descodigo INT,
+    @concodigo INT,
+    @aplnombrecorto VARCHAR(50),
+    @aplnombrecompleto VARCHAR(250),
+    @aplregistro VARCHAR(50),
+    @aplfechaadquisicion DATETIME,
+    @aplfechaimplementacion DATETIME,
+    @aplproveedor VARCHAR(100),
+    @aplversion VARCHAR(100),
+    @aplanocreacion INT,
+    @aplnumerousuario INT,
+    @apladministradorusuario VARCHAR(200),
+    @aplvalorestimado VARCHAR(100),
+    @apltransaccionesmensuales VARCHAR(50),
+    @aplfechaactualizacion DATETIME,
+    @aplsla VARCHAR(100),
+    @aplrutadoctecnico VARCHAR(1000),
+    @aplenlace VARCHAR(1200),
+    @apltiemporeinicio VARCHAR(200),
+    @aplhorareinicio VARCHAR(200),
+    @aplactivo INT,
+    @apldescripcion VARCHAR(750),
+    @aplobservaciones VARCHAR(800),
+    @aplhsoportevigente VARCHAR(20),
+    @aplhttps INT,
+    @aplarearequirente VARCHAR(300),
+    @aplsubarea VARCHAR(300),
+    @aplproceso VARCHAR(200)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 🔍 Validación de existencia
+    IF NOT EXISTS (SELECT 1 FROM aplicativo WHERE aplcodigo = @aplcodigo)
+        THROW 50100, 'El aplicativo especificado no existe.', 1;
+
+    -- 🔐 Validación de claves foráneas
+    IF NOT EXISTS (SELECT 1 FROM criticidad WHERE cricodigo = @cricodigo)
+        THROW 50101, 'Código de criticidad inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_catastro WHERE tipccodigo = @tipccodigo)
+        THROW 50102, 'Código de tipo catastro inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM herramienta WHERE hercodigo = @hercodigo)
+        THROW 50103, 'Código de herramienta inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_acceso WHERE tipaccesocodigo = @tipaccesocodigo)
+        THROW 50104, 'Código de tipo acceso inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_usuario WHERE tipcodigo = @tipcodigo)
+        THROW 50105, 'Código de tipo usuario inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_fuentedatos WHERE tfdcodigo = @tfdcodigo)
+        THROW 50106, 'Código de fuente de datos inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM estado WHERE estcodigo = @estcodigo)
+        THROW 50107, 'Código de estado inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM tipo_integracion WHERE intcodigo = @intcodigo)
+        THROW 50108, 'Código de integración inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM fuente WHERE fuecodigo = @fuecodigo)
+        THROW 50109, 'Código de fuente inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM desarrollo WHERE descodigo = @descodigo)
+        THROW 50110, 'Código de desarrollo inválido.', 1;
+    IF NOT EXISTS (SELECT 1 FROM control WHERE concodigo = @concodigo)
+        THROW 50111, 'Código de control inválido.', 1;
+
+    -- 🔄 Actualización completa
+    UPDATE aplicativo
+    SET
+        cricodigo = @cricodigo,
+        tipccodigo = @tipccodigo,
+        maccodigo = @maccodigo,
+        hercodigo = @hercodigo,
+        tipaccesocodigo = @tipaccesocodigo,
+        tipcodigo = @tipcodigo,
+        tfdcodigo = @tfdcodigo,
+        estcodigo = @estcodigo,
+        intcodigo = @intcodigo,
+        fuecodigo = @fuecodigo,
+        descodigo = @descodigo,
+        concodigo = @concodigo,
+        aplnombrecorto = @aplnombrecorto,
+        aplnombrecompleto = @aplnombrecompleto,
+        aplregistro = @aplregistro,
+        aplfechaadquisicion = @aplfechaadquisicion,
+        aplfechaimplementacion = @aplfechaimplementacion,
+        aplproveedor = @aplproveedor,
+        aplversion = @aplversion,
+        aplanocreacion = @aplanocreacion,
+        aplnumerousuario = @aplnumerousuario,
+        apladministradorusuario = @apladministradorusuario,
+        aplvalorestimado = @aplvalorestimado,
+        apltransaccionesmensuales = @apltransaccionesmensuales,
+        aplfechaactualizacion = @aplfechaactualizacion,
+        aplsla = @aplsla,
+        aplrutadoctecnico = @aplrutadoctecnico,
+        aplenlace = @aplenlace,
+        apltiemporeinicio = @apltiemporeinicio,
+        aplhorareinicio = @aplhorareinicio,
+        aplactivo = @aplactivo,
+        apldescripcion = @apldescripcion,
+        aplobservaciones = @aplobservaciones,
+        aplhsoportevigente = @aplhsoportevigente,
+        aplhttps = @aplhttps,
+        aplarearequirente = @aplarearequirente,
+        aplsubarea = @aplsubarea,
+        aplproceso = @aplproceso
+    WHERE aplcodigo = @aplcodigo;
+END
+GO
+
